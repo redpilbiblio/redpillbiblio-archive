@@ -94,8 +94,8 @@ export default function FamiliesLanding() {
           margin: '0 auto 2.5rem',
         }}>
           {[
-            { value: '7', label: 'DYNASTIES INDEXED', isLive: false },
-            { value: '175', label: 'SOURCE DOCUMENTS', isLive: false },
+            { value: '9', label: 'DYNASTIES INDEXED', isLive: false },
+            { value: '182', label: 'SOURCE DOCUMENTS', isLive: false },
             { value: '● LIVE', label: 'RESEARCH ACTIVE', isLive: true },
           ].map((item, i) => (
             <div key={i} style={{

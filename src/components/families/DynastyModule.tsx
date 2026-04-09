@@ -34,6 +34,10 @@ const BushContent = lazy(() =>
   import('./BushContent').then(m => ({ default: m.BushContent }))
 );
 
+const KennedyContent = lazy(() =>
+  import('./KennedyContent').then(m => ({ default: m.KennedyContent }))
+);
+
 function DynastyLoader({ accentColor }: { accentColor: string }) {
   return (
     <div style={{ padding: '2rem', textAlign: 'center' as const }}>
@@ -149,6 +153,7 @@ export function DynastyModule({ dynasty, isOpen, onToggle }: DynastyModuleProps)
             {dynasty.id === 'clinton' && <ClintonContent />}
             {dynasty.id === 'trump' && <TrumpContent />}
             {dynasty.id === 'bush' && <BushContent />}
+            {dynasty.id === 'kennedy' && <KennedyContent />}
           </Suspense>
         </div>
       )}

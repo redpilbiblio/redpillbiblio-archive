@@ -117,4 +117,17 @@ export const dynastiesIndex: DynastyMeta[] = [
     sourceCount: 12,
     memberCount: 6,
   },
+  {
+    id: 'kennedy',
+    title: "The Kennedy Dynasty",
+    tagline: "Irish famine immigrants → Boston ward boss → Hollywood → SEC → White House → Two Assassinations",
+    icon: '🇺🇸',
+    era: '1849–Present',
+    region: 'Boston / Washington D.C., USA (Global)',
+    category: 'CORPORATE',
+    accentColor: '#1a5a9e',
+    peakWealth: '~$400M peak (Joe Sr., 1960s inflation-adjusted ~$3B+)',
+    sourceCount: 7,
+    memberCount: 9,
+  },
 ];
