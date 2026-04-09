@@ -106,7 +106,7 @@ export const dynastiesIndex: DynastyMeta[] = [
   },
   {
     id: 'bush',
-    title: "The Bush Family",
+    title: "The Bush Dynasty",
     tagline: "Nazi-linked Wall Street bank → Texas oil → CIA Director → Two Presidencies → Iraq War deception",
     icon: '🦅',
     era: '1895–Present',
