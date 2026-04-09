@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactIsland from '@/islands/ContactIsland';
+---
+
+<BaseLayout
+  title="Contact — The Red Pill Bibliography"
+  description="Submit tips, report errors, or reach out to The Red Pill Bibliography research team. All submissions are reviewed and handled with discretion."
+  ogTitle="Contact — The Red Pill Bibliography"
+  ogDescription="Submit tips, report errors, or contact The Red Pill Bibliography research team."
+  canonicalPath="/contact"
+>
+  <ContactIsland client:only="react" />
+</BaseLayout>

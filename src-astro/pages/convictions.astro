@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ConvictionsIsland from '@/islands/ConvictionsIsland';
+---
+
+<BaseLayout
+  title="Convictions & Charges — The Red Pill Bibliography"
+  description="A comprehensive database of criminal convictions and charges against public officials, corporate executives, and institutional leaders across government, corporate, and religious sectors."
+  ogTitle="Convictions & Charges — The Red Pill Bibliography"
+  ogDescription="Database of criminal convictions and charges against public officials, corporate executives, and institutional leaders."
+  canonicalPath="/convictions"
+>
+  <ConvictionsIsland client:only="react" />
+</BaseLayout>

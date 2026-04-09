@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Insider Trades Tracker — The Red Pill Bibliography"
+  description="Monitor insider trading patterns and suspicious stock transactions by corporate executives and institutional insiders."
+  canonicalPath="/trackers/insider-trades"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

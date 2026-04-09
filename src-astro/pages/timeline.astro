@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Timeline — The Red Pill Bibliography"
+  description="Chronological timeline of documented institutional events, corruption cases, and accountability failures."
+  canonicalPath="/timeline"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

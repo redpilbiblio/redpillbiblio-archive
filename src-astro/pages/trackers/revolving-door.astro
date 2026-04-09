@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Revolving Door Tracker — The Red Pill Bibliography"
+  description="Tracking the revolving door between government positions and private sector roles in lobbying, defense, and finance."
+  canonicalPath="/trackers/revolving-door"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

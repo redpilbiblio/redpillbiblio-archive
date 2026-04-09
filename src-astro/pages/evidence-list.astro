@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EvidenceBoardListIsland from '@/islands/EvidenceBoardListIsland';
+---
+
+<BaseLayout
+  title="Evidence Library — The Red Pill Bibliography"
+  description="Browse the complete evidence library documenting verified cases of institutional corruption, financial fraud, government overreach, and corporate malfeasance."
+  ogTitle="Evidence Library — The Red Pill Bibliography"
+  ogDescription="Browse verified evidence of institutional corruption, financial fraud, government overreach, and corporate malfeasance."
+  canonicalPath="/evidence-list"
+>
+  <EvidenceBoardListIsland client:only="react" />
+</BaseLayout>

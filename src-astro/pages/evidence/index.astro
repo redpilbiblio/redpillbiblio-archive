@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Evidence Board — The Red Pill Bibliography"
+  description="Interactive evidence board mapping connections between institutional corruption, corporate fraud, and government overreach."
+  canonicalPath="/evidence"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

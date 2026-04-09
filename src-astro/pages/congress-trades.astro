@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Congress Trades — The Red Pill Bibliography"
+  description="Track congressional stock trading activity and potential insider trading by members of Congress."
+  canonicalPath="/congress-trades"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

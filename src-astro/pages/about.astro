@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AboutIsland from '@/islands/AboutIsland';
+---
+
+<BaseLayout
+  title="About — The Red Pill Bibliography"
+  description="Learn about The Red Pill Bibliography's mission to document verified cases of institutional capture, corruption, and accountability failures through evidence-based research."
+  ogTitle="About — The Red Pill Bibliography"
+  ogDescription="Our mission: documenting verified cases of institutional capture, corruption, and accountability failures through rigorous evidence-based research."
+  canonicalPath="/about"
+>
+  <AboutIsland client:only="react" />
+</BaseLayout>

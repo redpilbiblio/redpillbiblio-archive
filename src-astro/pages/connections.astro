@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Connection Map — The Red Pill Bibliography"
+  description="Interactive network map visualizing connections between institutions, individuals, and events in documented corruption cases."
+  canonicalPath="/connections"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

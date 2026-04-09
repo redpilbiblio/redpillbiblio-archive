@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalIsland from '@/islands/LegalIsland';
+---
+
+<BaseLayout
+  title="Legal & Disclaimers — The Red Pill Bibliography"
+  description="Legal disclaimers, terms of use, and privacy policy for The Red Pill Bibliography. Information about our editorial standards and source verification practices."
+  ogTitle="Legal & Disclaimers — The Red Pill Bibliography"
+  ogDescription="Legal disclaimers, terms of use, and privacy policy for The Red Pill Bibliography."
+  canonicalPath="/legal"
+>
+  <LegalIsland client:only="react" />
+</BaseLayout>

@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Sitemap — The Red Pill Bibliography"
+  description="Sitemap for The Red Pill Bibliography."
+  canonicalPath="/sitemap.xml"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

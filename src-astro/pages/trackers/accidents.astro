@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Industrial Accidents Tracker — The Red Pill Bibliography"
+  description="Tracking industrial accidents, workplace safety violations, and corporate negligence incidents."
+  canonicalPath="/trackers/accidents"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

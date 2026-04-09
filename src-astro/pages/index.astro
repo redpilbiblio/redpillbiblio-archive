@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LandingIsland from '@/islands/LandingIsland';
+---
+
+<BaseLayout
+  title="The Red Pill Bibliography — Evidence-Based Research Library"
+  description="An evidence-based research library documenting verified cases of institutional capture, corruption, and accountability failures across government, corporate, and financial sectors."
+  ogTitle="The Red Pill Bibliography — Evidence-Based Research Library"
+  ogDescription="An evidence-based research library documenting verified cases of institutional capture, corruption, and accountability failures across government, corporate, and financial sectors."
+  canonicalPath="/"
+>
+  <LandingIsland client:only="react" />
+</BaseLayout>

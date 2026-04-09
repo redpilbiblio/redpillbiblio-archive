@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+---
+
+<BaseLayout
+  title="Suspicious Deaths Tracker — The Red Pill Bibliography"
+  description="Documented cases of suspicious deaths connected to institutional investigations and whistleblower activities."
+  canonicalPath="/trackers/suspicious-deaths"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

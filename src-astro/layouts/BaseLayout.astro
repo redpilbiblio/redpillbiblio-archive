@@ -1,0 +1,62 @@
+---
+import '@/index.css';
+
+interface Props {
+  title: string;
+  description: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  canonicalPath?: string;
+  twitterCard?: string;
+}
+
+const {
+  title,
+  description,
+  ogTitle,
+  ogDescription,
+  ogImage = 'https://bpvksoxmwjcjvwgztikg.supabase.co/functions/v1/generate-og-image?type=default',
+  canonicalPath = '/',
+  twitterCard = 'summary_large_image',
+} = Astro.props;
+
+const siteUrl = 'https://redpillbiblio.wtf';
+const canonicalUrl = `${siteUrl}${canonicalPath}`;
+const resolvedOgTitle = ogTitle || title;
+const resolvedOgDescription = ogDescription || description;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#00ff41" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://bpvksoxmwjcjvwgztikg.supabase.co" />
+    <link rel="alternate" type="application/rss+xml" title="The Red Pill Bibliography — New Evidence" href="/feed.xml" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={resolvedOgTitle} />
+    <meta property="og:description" content={resolvedOgDescription} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content="The Red Pill Bibliography" />
+    <meta name="twitter:card" content={twitterCard} />
+    <meta name="twitter:title" content={resolvedOgTitle} />
+    <meta name="twitter:description" content={resolvedOgDescription} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="canonical" href={canonicalUrl} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

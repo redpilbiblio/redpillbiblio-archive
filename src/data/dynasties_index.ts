@@ -1,0 +1,120 @@
+export interface DynastyMeta {
+  id: string;
+  title: string;
+  tagline: string;
+  icon: string;
+  era: string;
+  region: string;
+  category: 'HISTORICAL' | 'INDUSTRIAL' | 'SOVEREIGN' | 'CORPORATE';
+  accentColor: string;
+  peakWealth: string;
+  sourceCount: number;
+  memberCount: number;
+}
+
+export const dynastiesIndex: DynastyMeta[] = [
+  {
+    id: 'medici',
+    title: "The Medici Dynasty",
+    tagline: "Wool merchants → Bankers → Rulers of Florence → 4 Popes, 2 Queens of France",
+    icon: '🏛',
+    era: '13th–18th Century',
+    region: 'Florence, Italy',
+    category: 'HISTORICAL',
+    accentColor: '#C9A84C',
+    peakWealth: 'Incalculable (Renaissance-era)',
+    sourceCount: 35,
+    memberCount: 24,
+  },
+  {
+    id: 'rothschild',
+    title: "The Rothschild Dynasty",
+    tagline: "Frankfurt ghetto → Five sons, five capitals → The wealthiest family of the 19th century",
+    icon: '🏦',
+    era: '1760–Present',
+    region: 'Europe (Global)',
+    category: 'HISTORICAL',
+    accentColor: '#C9A84C',
+    peakWealth: '~$300–400B (adjusted peak)',
+    sourceCount: 40,
+    memberCount: 29,
+  },
+  {
+    id: 'rockefeller',
+    title: "The Rockefeller Dynasty",
+    tagline: "Rhineland peasants → Standard Oil → First American billionaire → Trilateral Commission",
+    icon: '🛢',
+    era: '1870–Present',
+    region: 'New York, USA (Global)',
+    category: 'INDUSTRIAL',
+    accentColor: '#E8722A',
+    peakWealth: '~$435B GDP-adjusted (JDR Sr. peak)',
+    sourceCount: 30,
+    memberCount: 18,
+  },
+  {
+    id: 'walton',
+    title: "The Walton Dynasty",
+    tagline: "Missouri farm stock → Bentonville dime store → Walmart → World's richest family at ~$500B",
+    icon: '🏪',
+    era: '1962–Present',
+    region: 'Bentonville, Arkansas (Global)',
+    category: 'INDUSTRIAL',
+    accentColor: '#00B4D8',
+    peakWealth: '~$500B combined (2026)',
+    sourceCount: 30,
+    memberCount: 14,
+  },
+  {
+    id: 'koch',
+    title: "The Koch Dynasty",
+    tagline: "Dutch immigrant printer → Texas oil → $125B private empire → America's dark money machine",
+    icon: '🏭',
+    era: '1940–Present',
+    region: 'Wichita, Kansas (Global)',
+    category: 'INDUSTRIAL',
+    accentColor: '#E63946',
+    peakWealth: '~$155B+ (Charles + Julia, 2026)',
+    sourceCount: 30,
+    memberCount: 10,
+  },
+  {
+    id: 'clinton',
+    title: "The Clinton Dynasty",
+    tagline: "Oxford scholar → Governor → President → Global foundation → Political power & influence",
+    icon: '🎩',
+    era: '1980–Present',
+    region: 'Arkansas, USA (Global)',
+    category: 'CORPORATE',
+    accentColor: '#4F46E5',
+    peakWealth: '~$250M+ (foundation assets)',
+    sourceCount: 45,
+    memberCount: 8,
+  },
+  {
+    id: 'trump',
+    title: "The Trump Dynasty",
+    tagline: "Bavarian immigrant → Queens builder → Manhattan luxury brand → 45th & 47th POTUS → $6.5B empire",
+    icon: '🏛',
+    era: '1885–Present',
+    region: 'New York, USA (Global)',
+    category: 'INDUSTRIAL',
+    accentColor: '#c0392b',
+    peakWealth: '~$6.5B (Donald, 2026) · ~$10B combined',
+    sourceCount: 11,
+    memberCount: 13,
+  },
+  {
+    id: 'bush',
+    title: "The Bush Family",
+    tagline: "Nazi-linked Wall Street bank → Texas oil → CIA Director → Two Presidencies → Iraq War deception",
+    icon: '🦅',
+    era: '1895–Present',
+    region: 'Connecticut / Texas, USA (Global)',
+    category: 'CORPORATE',
+    accentColor: '#b48c3c',
+    peakWealth: '~$400–500M combined dynasty',
+    sourceCount: 12,
+    memberCount: 6,
+  },
+];

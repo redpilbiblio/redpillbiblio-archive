@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIsland from '@/islands/AppIsland';
+import { supabase } from '../../lib/supabase';
+
+interface DocRow {
+  id: string;
+  title: string;
+  description: string;
+  slug: string | null;
+}
+
+export async function getStaticPaths() {
+  const { data: documents } = await supabase
+    .from('documents')
+    .select('id, title, description, slug');
+
+  const paths = (documents || []).flatMap((doc: DocRow) => {
+    const props = {
+      docTitle: doc.title,
+      docDescription: doc.description || '',
+      docSlug: doc.slug || doc.id,
+    };
+    const entries = [{ params: { slug: doc.id }, props }];
+    if (doc.slug) {
+      entries.push({ params: { slug: doc.slug }, props });
+    }
+    return entries;
+  });
+
+  return paths;
+}
+
+const { slug } = Astro.params;
+const { docTitle, docDescription, docSlug } = Astro.props;
+
+const pageTitle = `${docTitle} — The Red Pill Bibliography`;
+const excerpt = docDescription.length > 160
+  ? docDescription.slice(0, 157) + '...'
+  : docDescription;
+const ogImageUrl = `https://bpvksoxmwjcjvwgztikg.supabase.co/functions/v1/generate-og-image?type=evidence&title=${encodeURIComponent(docTitle)}`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={excerpt}
+  ogTitle={pageTitle}
+  ogDescription={excerpt}
+  ogImage={ogImageUrl}
+  canonicalPath={`/evidence/${docSlug}`}
+  twitterCard="summary_large_image"
+>
+  <AppIsland client:only="react" />
+</BaseLayout>

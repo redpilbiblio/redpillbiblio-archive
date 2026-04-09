@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TrackersIsland from '@/islands/TrackersIsland';
+---
+
+<BaseLayout
+  title="Accountability Trackers — The Red Pill Bibliography"
+  description="Real-time trackers monitoring congressional stock trades, insider trading patterns, suspicious deaths, industrial accidents, and revolving-door politics."
+  ogTitle="Accountability Trackers — The Red Pill Bibliography"
+  ogDescription="Real-time trackers monitoring congressional stock trades, insider trading, suspicious deaths, and revolving-door politics."
+  canonicalPath="/trackers"
+>
+  <TrackersIsland client:only="react" />
+</BaseLayout>
