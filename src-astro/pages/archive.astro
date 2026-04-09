@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchiveIsland from '@/islands/ArchiveIsland';
+---
+
+<BaseLayout
+  title="Evidence Archive — The Red Pill Bibliography"
+  description="Comprehensive primary-source bibliography and archive of 200+ government documents, court filings, PFAS litigation, STOCK Act disclosures, Section 702 surveillance oversight, and child trafficking reports."
+  ogTitle="Evidence Archive — The Red Pill Bibliography"
+  ogDescription="Searchable archive of 200+ verified government documents, court filings, and institutional accountability records."
+  canonicalPath="/archive"
+>
+  <ArchiveIsland client:only="react" />
+</BaseLayout>

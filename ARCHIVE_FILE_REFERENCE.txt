@@ -1,0 +1,281 @@
+═══════════════════════════════════════════════════════════════════════════
+EVIDENCE ARCHIVE - FILE REFERENCE GUIDE
+═══════════════════════════════════════════════════════════════════════════
+
+COMPONENT STRUCTURE
+───────────────────────────────────────────────────────────────────────────
+
+1. ASTRO PAGE (SEO wrapper)
+   File: src-astro/pages/archive.astro
+   Purpose: Server-side page rendering with SEO meta tags
+   Size: 682 bytes
+   Imports: BaseLayout, ArchiveIsland
+   Route: /archive
+   
+2. REACT ISLAND (Interactivity)
+   File: src/islands/ArchiveIsland.tsx
+   Purpose: Wrapper component for client-side React hydration
+   Size: 212 bytes
+   Imports: Archive component
+   Mode: client:only="react"
+
+3. MAIN COMPONENT (Business Logic)
+   File: src/pages/Archive.tsx
+   Purpose: Full archive functionality and UI
+   Size: 18.5 KB
+   Features:
+   - State management (useState, useMemo)
+   - Search and filtering logic
+   - Sort functionality
+   - View mode toggling
+   - Responsive layout
+   
+   Key Sections:
+   - Lines 1-20: Imports
+   - Lines 22-40: Type definitions
+   - Lines 42-100: Main state setup
+   - Lines 102-180: useMemo hooks for filtering
+   - Lines 182-240: Event handlers
+   - Lines 242-350: Statistics and controls
+   - Lines 350-450: Sidebar filters
+   - Lines 450-550: Content area (card/table)
+   - Lines 550-700: Helper components
+
+4. DATA FILE (JSON storage)
+   File: src-astro/data/archive-2026-batch.json
+   Purpose: Archive item data storage
+   Current: 20 sample items
+   Target: 200 items
+   Format: JSON array
+   Item schema:
+   {
+     "title": string,
+     "verification_status": "Verified",
+     "summary": string,
+     "event_date": "YYYY-MM-DD",
+     "categories": [string, ...],
+     "tags": [string, ...],
+     "document_url": string|null,
+     "original_id": string
+   }
+
+HELPER COMPONENTS (within Archive.tsx)
+───────────────────────────────────────────────────────────────────────────
+
+FilterSection Component (lines ~580-620)
+- Displays collapsible filter group
+- Props: title, expanded, onToggle, items, selected, onToggle
+- Renders: Checkbox list with label
+
+ArchiveCard Component (lines ~630-700)
+- Displays single item in card view
+- Props: item, statusColor, formatDate
+- Features: Title, summary, badges, tags, date, link
+
+State Variables
+───────────────────────────────────────────────────────────────────────────
+
+const [searchTerm, setSearchTerm] = useState('')
+- User input for search
+
+const [viewMode, setViewMode] = useState<ViewMode>('card')
+- 'card' or 'table' view
+
+const [sortBy, setSortBy] = useState<SortOption>('newest')
+- 'newest', 'oldest', or 'title'
+
+const [expandedFilters, setExpandedFilters] = useState({...})
+- Toggle state for each filter section
+
+const [selectedCategories, setSelectedCategories] = useState(new Set())
+- Multi-select category filter
+
+const [selectedStatuses, setSelectedStatuses] = useState(new Set())
+- Multi-select status filter
+
+const [selectedTags, setSelectedTags] = useState(new Set())
+- Multi-select tags filter
+
+const [dateRange, setDateRange] = useState({ start: '', end: '' })
+- Date range filter
+
+Computed Values (useMemo hooks)
+───────────────────────────────────────────────────────────────────────────
+
+allCategories
+- Unique categories extracted from data
+
+allStatuses  
+- Unique statuses from data
+
+allTags
+- Unique tags from data (sorted)
+
+filteredItems
+- Items after all filters applied
+- Dependencies: searchTerm, selectedCategories, selectedStatuses, 
+  selectedTags, dateRange
+
+sortedItems
+- Filtered items after sorting
+- Dependencies: filteredItems, sortBy
+
+Key Functions
+───────────────────────────────────────────────────────────────────────────
+
+toggleCategory(cat: string)
+- Add/remove category from filter
+
+toggleStatus(status: string)
+- Add/remove status from filter
+
+toggleTag(tag: string)
+- Add/remove tag from filter
+
+clearAllFilters()
+- Reset all filters and search
+
+getStatusColor(status: string)
+- Return Tailwind classes for status badge
+
+formatDate(dateStr: string)
+- Format ISO date to readable string
+
+Styling Classes
+───────────────────────────────────────────────────────────────────────────
+
+Colors:
+- bg-black / bg-gray-950 (backgrounds)
+- border-gray-700 / border-gray-800 (borders)
+- text-gray-100 / text-gray-300 (text)
+- text-green-400 / text-green-300 (accents)
+- bg-green-500/20 (verified status)
+
+Layouts:
+- grid grid-cols-1 lg:grid-cols-4 (main layout)
+- grid grid-cols-1 md:grid-cols-2 (card grid)
+- flex items-center justify-between (headers)
+
+Sizing:
+- max-w-7xl (content max width)
+- px-4 py-8 (padding)
+- gap-6 / gap-4 (spacing)
+
+Interactions:
+- hover:border-gray-700 (hover states)
+- transition-colors (smooth transitions)
+- cursor-pointer (interactive elements)
+
+Dependencies & Imports
+───────────────────────────────────────────────────────────────────────────
+
+React:
+- useState, useMemo, useCallback
+
+Components:
+- Navigation, Footer, PageHeader (site layout)
+- Input, Button, Badge (UI elements)
+
+Icons (lucide-react):
+- Search, ChevronDown, LayoutGrid, LayoutList, Download, X
+
+Data:
+- archiveData (JSON import - client-side)
+
+Export
+──────────────────────────────────────────────────────────────────────────
+
+export function Archive()
+- Main component for island import
+
+CSS Utilities Used
+──────────────────────────────────────────────────────────────────────────
+
+Tailwind:
+- All standard utilities (no custom CSS needed)
+- Uses design tokens from Tailwind config
+- Dark mode classes (already dark by default)
+
+UI Components:
+- shadcn/ui Button, Badge, Input (Tailwind-based)
+- No CSS modules or styled-components
+- Pure utility classes
+
+Accessibility Features
+──────────────────────────────────────────────────────────────────────────
+
+- Semantic HTML (labels, inputs, buttons)
+- Keyboard navigation support
+- Sufficient color contrast
+- Readable font sizes
+- Clear focus states
+- Proper input labels
+
+Performance Optimizations
+──────────────────────────────────────────────────────────────────────────
+
+- useMemo for filtered results (no recalc unless deps change)
+- useMemo for computed lists (categories, statuses, tags)
+- Event handlers use stable references
+- Responsive images (no large assets)
+- CSS utility classes (no unused code)
+- Client-side only (no server requests for filtering)
+
+Browser Support
+──────────────────────────────────────────────────────────────────────────
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (iOS Safari, Chrome Mobile)
+- IE11: Not supported (uses modern JS)
+
+Testing Points
+──────────────────────────────────────────────────────────────────────────
+
+1. Search functionality
+   - Type in search bar
+   - Results filter in real-time
+   
+2. Category filter
+   - Select multiple categories
+   - Results update immediately
+   
+3. Status filter
+   - Select different statuses
+   - Proper filtering applied
+
+4. Tags filter
+   - Multi-select tags work
+   - Results filtered correctly
+
+5. Date filter
+   - Start date filters correctly
+   - End date filters correctly
+   - Range combination works
+
+6. Sort options
+   - Newest first works
+   - Oldest first works
+   - Alphabetical sorting works
+
+7. View toggle
+   - Card view renders correctly
+   - Table view renders correctly
+   - Switch between views
+
+8. Clear all
+   - Resets all filters
+   - Resets search
+   - Resets sort to default
+
+9. Responsive
+   - Mobile layout (1 column)
+   - Tablet layout (2 columns)
+   - Desktop layout (sidebar + 3 columns)
+
+10. Links
+    - Document URLs open in new tab
+    - All links functional
+
+═══════════════════════════════════════════════════════════════════════════
