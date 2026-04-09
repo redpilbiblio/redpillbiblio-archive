@@ -1,20 +1,20 @@
 import { useEffect, useRef } from 'react';
 
 const STATS = {
-  archiveItems: 606,
+  archiveItems: 644,
   trackerItems: 1378,
-  timelineEvents: 998,
+  timelineEvents: 1222,
   convictionRecords: 345,
-  watchlistEntries: 84,
-  sourcedLinks: 580,
-  primarySourceLinks: 522,
+  watchlistEntries: 88,
+  sourcedLinks: 616,
+  primarySourceLinks: 588,
   openPendingItems: 38,
-  govLinks: 116,
-  pctPrimaryVerified: 86.1,
+  govLinks: 183,
+  pctPrimaryVerified: 91.3,
   pctValid: 7.6,
   pctPreliminary: 1.7,
   pctOpen: 4.6,
-  lastUpdated: '2026-03-27 15:30 ET',
+  lastUpdated: '2026-04-09 03:00 ET',
   donations: '$333',
 };
 
