@@ -22,15 +22,30 @@ export interface GroupedSearchResults {
 }
 
 async function searchDocuments(query: string, limit = 8): Promise<SearchResult[]> {
-  const { data, error } = await supabase
-    .from('documents')
-    .select('id, title, description, verification_tier, document_type, date_published, slug')
-    .textSearch('title', query, { type: 'plain', config: 'english' })
-    .limit(limit);
+  const [ftResult, ilikeResult] = await Promise.all([
+    supabase
+      .from('documents')
+      .select('id, title, description, verification_tier, document_type, date_published, slug')
+      .textSearch('title', query, { type: 'plain', config: 'english' })
+      .limit(limit),
+    supabase
+      .from('documents')
+      .select('id, title, description, verification_tier, document_type, date_published, slug')
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+      .limit(limit),
+  ]);
 
-  if (error || !data) return [];
+  const seen = new Set<string>();
+  const combined: typeof ftResult.data = [];
 
-  return data.map(d => ({
+  for (const row of [...(ftResult.data || []), ...(ilikeResult.data || [])]) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      combined.push(row);
+    }
+  }
+
+  return combined.slice(0, limit).map(d => ({
     id: d.id,
     type: 'evidence' as SearchResultType,
     title: d.title,
@@ -61,15 +76,30 @@ async function searchEnemies(query: string, limit = 4): Promise<SearchResult[]> 
 }
 
 async function searchEvents(query: string, limit = 4): Promise<SearchResult[]> {
-  const { data, error } = await supabase
-    .from('events')
-    .select('id, title, description, event_date, pillar')
-    .textSearch('title', query, { type: 'plain', config: 'english' })
-    .limit(limit);
+  const [ftResult, ilikeResult] = await Promise.all([
+    supabase
+      .from('events')
+      .select('id, title, description, event_date, pillar')
+      .textSearch('title', query, { type: 'plain', config: 'english' })
+      .limit(limit),
+    supabase
+      .from('events')
+      .select('id, title, description, event_date, pillar')
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+      .limit(limit),
+  ]);
 
-  if (error || !data) return [];
+  const seen = new Set<string>();
+  const combined: typeof ftResult.data = [];
 
-  return data.map(d => ({
+  for (const row of [...(ftResult.data || []), ...(ilikeResult.data || [])]) {
+    if (!seen.has(row.id)) {
+      seen.add(row.id);
+      combined.push(row);
+    }
+  }
+
+  return combined.slice(0, limit).map(d => ({
     id: d.id,
     type: 'timeline' as SearchResultType,
     title: d.title,
