@@ -22,7 +22,7 @@ import { ResearchFilterSidebar } from './ResearchFilterSidebar';
 import { ResultCard } from './ResultCard';
 import { CorkboardPanel } from './CorkboardPanel';
 import { useResearchFilters } from '../../hooks/useResearchFilters';
-import { useCorkboardPins } from '../../hooks/useCorkboardPins';
+import { useCorkboardPins, type CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { supabase } from '../../lib/supabase';
 import type { ResearchFilters, ResearchItem } from '../../lib/researchItems';
 import { dynastiesIndex } from '../../data/dynasties_index';
@@ -67,6 +67,7 @@ function parseCsvDeaths(raw: string): Array<{ name: string; date: string; occupa
 export interface ResultsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  corkboard?: CorkboardPinsHandle;
 }
 
 type ViewMode = 'list' | 'corkboard';
@@ -376,7 +377,7 @@ function ResultSkeletons() {
   );
 }
 
-export function ResultsDrawer({ open, onOpenChange }: ResultsDrawerProps) {
+export function ResultsDrawer({ open, onOpenChange, corkboard: corkboardProp }: ResultsDrawerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -396,7 +397,8 @@ export function ResultsDrawer({ open, onOpenChange }: ResultsDrawerProps) {
   } = useResearchFilters();
 
   const { data: rawItems = [], isLoading, error } = useResearchResults(filters);
-  const { pins, pinItem, unpinItem, isItemPinned } = useCorkboardPins();
+  const ownCorkboard = useCorkboardPins();
+  const { pins, pinItem, unpinItem, isItemPinned } = corkboardProp ?? ownCorkboard;
 
   const results = useMemo(() => applyFilters(rawItems, filters), [rawItems, filters]);
 
@@ -528,7 +530,7 @@ export function ResultsDrawer({ open, onOpenChange }: ResultsDrawerProps) {
 
           <div className="flex-1 min-h-0 overflow-hidden">
             {viewMode === 'corkboard' ? (
-              <CorkboardPanel />
+              <CorkboardPanel corkboard={corkboardProp ?? ownCorkboard} />
             ) : (
               <>
                 {/* ── Desktop layout (lg+) ─────────────────────────────────── */}

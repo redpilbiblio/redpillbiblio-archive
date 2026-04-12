@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { getSessionId } from '../lib/session';
 import type { ResearchItem } from '../lib/researchItems';
 
-type PinRow = {
+export type PinRow = {
   id: string;
   session_id: string;
   user_id: string | null;
@@ -16,7 +16,17 @@ type PinRow = {
   pinned_at: string;
 };
 
-export function useCorkboardPins(boardName: string = 'default') {
+export type CorkboardPinsHandle = {
+  pins: PinRow[];
+  loading: boolean;
+  error: string | null;
+  pinItem: (item: ResearchItem) => Promise<void>;
+  unpinItem: (pinId: string) => Promise<void>;
+  reorderPins: (orderedPinIds: string[]) => Promise<void>;
+  isItemPinned: (itemType: string, itemId: string) => boolean;
+};
+
+export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHandle {
   const [pins, setPins] = useState<PinRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +41,7 @@ export function useCorkboardPins(boardName: string = 'default') {
       .order('sort_order', { ascending: true });
 
     if (fetchError) {
+      console.error('[useCorkboardPins] fetchPins error:', fetchError);
       setError(fetchError.message);
     } else {
       setPins((data as PinRow[]) ?? []);
@@ -43,6 +54,17 @@ export function useCorkboardPins(boardName: string = 'default') {
   }, [fetchPins]);
 
   const pinItem = useCallback(async (item: ResearchItem): Promise<void> => {
+    console.log('[useCorkboardPins] pinItem called with:', item);
+
+    if (!item.id) {
+      console.warn('[useCorkboardPins] pinItem: item has no id, skipping insert.', item);
+      return;
+    }
+    if (!item.title) {
+      console.warn('[useCorkboardPins] pinItem: item has no title, skipping insert.', item);
+      return;
+    }
+
     const snapshot: Record<string, unknown> = {
       title: item.title,
       itemType: item.itemType,
@@ -71,6 +93,7 @@ export function useCorkboardPins(boardName: string = 'default') {
       if (insertError.code === '23505') {
         return;
       }
+      console.error('[useCorkboardPins] pinItem insert error:', insertError);
       setError(insertError.message);
       return;
     }
@@ -86,6 +109,7 @@ export function useCorkboardPins(boardName: string = 'default') {
       .eq('session_id', getSessionId());
 
     if (deleteError) {
+      console.error('[useCorkboardPins] unpinItem error:', deleteError);
       setError(deleteError.message);
       return;
     }
@@ -105,6 +129,7 @@ export function useCorkboardPins(boardName: string = 'default') {
     const failed = results.find(r => r.error);
 
     if (failed?.error) {
+      console.error('[useCorkboardPins] reorderPins error:', failed.error);
       setError(failed.error.message);
       return;
     }

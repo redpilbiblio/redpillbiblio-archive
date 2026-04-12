@@ -3,9 +3,11 @@ import { Navigation } from '../components/Navigation';
 import { Footer } from '../components/Footer';
 import { ResultsDrawer } from '../components/research/ResultsDrawer';
 import { SEOHead } from '../components/SEOHead';
+import { useCorkboardPins } from '../hooks/useCorkboardPins';
 
 export function ResearchWorkspace() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const corkboard = useCorkboardPins();
 
   return (
     <>
@@ -16,7 +18,11 @@ export function ResearchWorkspace() {
       />
       <Navigation />
       <div className="pt-16 min-h-screen bg-background">
-        <ResultsDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} />
+        <ResultsDrawer
+          open={isDrawerOpen}
+          onOpenChange={setIsDrawerOpen}
+          corkboard={corkboard}
+        />
         {!isDrawerOpen && (
           <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
             <button
