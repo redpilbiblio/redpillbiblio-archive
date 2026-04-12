@@ -28,10 +28,10 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Evidence',
     icon: FileSearch,
     links: [
-      { to: '/network', label: 'Network View', icon: Network },
+      { to: '/research', label: 'Research Board', icon: Network },
       { to: '/evidence-list', label: 'Evidence Archive', icon: FileText },
     ],
-    routes: ['/network', '/evidence-list'],
+    routes: ['/research', '/evidence-list'],
   },
   {
     id: 'history',

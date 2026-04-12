@@ -36,6 +36,7 @@ const FamiliesLanding = lazy(() => import('./pages/FamiliesLanding'));
 const ClintonDynasty = lazy(() => import('./pages/ClintonDynasty'));
 const TrumpDynasty = lazy(() => import('./pages/TrumpDynasty'));
 const BushDynasty = lazy(() => import('./pages/BushDynasty').then(m => ({ default: m.BushDynasty })));
+const ResearchWorkspace = lazy(() => import('./pages/ResearchWorkspace').then(m => ({ default: m.ResearchWorkspace })));
 const NotFound = lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 
 function LoadingSpinner() {
@@ -91,7 +92,8 @@ function AppInner() {
           <Route path="/changelog" element={<Changelog />} />
           <Route path="/submit" element={<Submit />} />
           <Route path="/search" element={<SearchResults />} />
-          <Route path="/network" element={<Navigate to="/evidence" replace />} />
+          <Route path="/research" element={<ResearchWorkspace />} />
+          <Route path="/network" element={<Navigate to="/research" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
