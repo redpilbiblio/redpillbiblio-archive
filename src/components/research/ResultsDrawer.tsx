@@ -25,6 +25,7 @@ import { useResearchFilters } from '../../hooks/useResearchFilters';
 import { useCorkboardPins, type CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { supabase } from '../../lib/supabase';
 import type { ResearchFilters, ResearchItem } from '../../lib/researchItems';
+import { normalizePillarSlug } from '../../lib/pillarUtils';
 import { dynastiesIndex } from '../../data/dynasties_index';
 import governmentConvictions from '../../data/government_convictions.json';
 import corporateConvictions from '../../data/corporate_convictions.json';
@@ -104,7 +105,7 @@ function useResearchResults(filters: ResearchFilters) {
           itemType: 'document',
           title: d.title,
           date: d.date_published ?? null,
-          pillarSlug: (d as Record<string, unknown>).pillar_slug as string ?? d.document_type ?? null,
+          pillarSlug: normalizePillarSlug((d as Record<string, unknown>).pillar_slug as string ?? d.document_type ?? null),
           verificationTier: d.verification_tier as ResearchItem['verificationTier'] ?? null,
           tags: (d.tags as string[] | null) ?? undefined,
           snippet: d.snippet ?? null,
@@ -117,7 +118,7 @@ function useResearchResults(filters: ResearchFilters) {
           itemType: 'event',
           title: e.title,
           date: e.event_date ?? null,
-          pillarSlug: e.pillar ?? null,
+          pillarSlug: normalizePillarSlug(e.pillar ?? null),
           snippet: e.snippet ?? null,
         });
       }
