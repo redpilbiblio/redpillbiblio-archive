@@ -202,7 +202,7 @@ function useResearchResults(filters: ResearchFilters) {
       const [docsRes, eventsRes, enemiesRes] = await Promise.all([
         supabase
           .from('documents')
-          .select('id, title, description, date_published, document_type, verification_tier, tags, source_url, metadata')
+          .select('id, title, description, date_published, document_type, verification_tier, source_url, metadata')
           .order('date_published', { ascending })
           .limit(600),
         supabase
@@ -233,7 +233,7 @@ function useResearchResults(filters: ResearchFilters) {
           pillar,
           sources: docSources(d),
           verificationTier: (d.verification_tier as ResearchItem['verificationTier']) ?? null,
-          tags: (d.tags as string[] | null) ?? undefined,
+          tags: undefined,
           snippet: (d.description as string) ?? null,
         });
       }
