@@ -32,7 +32,6 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
   const [error, setError] = useState<string | null>(null);
 
   const fetchPins = useCallback(async () => {
-    setLoading(true);
     const { data, error: fetchError } = await supabase
       .from('corkboard_pins')
       .select('*')
@@ -54,22 +53,18 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
   }, [fetchPins]);
 
   const pinItem = useCallback(async (item: ResearchItem): Promise<void> => {
-    console.log('[useCorkboardPins] pinItem called with:', item);
+    if (!item.id || !item.title) {
+      console.warn('[useCorkboardPins] pinItem: item missing id or title', item);
+      return;
+    }
 
-    if (!item.id) {
-      console.warn('[useCorkboardPins] pinItem: item has no id, skipping insert.', item);
-      return;
-    }
-    if (!item.title) {
-      console.warn('[useCorkboardPins] pinItem: item has no title, skipping insert.', item);
-      return;
-    }
+    const sessionId = getSessionId();
 
     const snapshot: Record<string, unknown> = {
       title: item.title,
       itemType: item.itemType,
       date: item.date,
-      pillarSlug: item.pillarSlug,
+      pillarSlug: item.pillarSlug ?? null,
       dynastyName: item.dynastyName ?? null,
       severity: item.severity ?? null,
       verificationTier: item.verificationTier ?? null,
@@ -77,31 +72,58 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
       tags: item.tags ?? null,
     };
 
-    const { error: insertError } = await supabase
+    const optimisticPin: PinRow = {
+      id: `optimistic-${item.itemType}-${item.id}`,
+      session_id: sessionId,
+      user_id: null,
+      board_name: boardName,
+      item_type: item.itemType,
+      item_id: item.id,
+      item_snapshot: snapshot,
+      sort_order: pins.length,
+      user_note: null,
+      pinned_at: new Date().toISOString(),
+    };
+
+    setPins(prev => [...prev, optimisticPin]);
+
+    const { data: inserted, error: insertError } = await supabase
       .from('corkboard_pins')
       .insert({
-        session_id: getSessionId(),
+        session_id: sessionId,
         user_id: null,
         board_name: boardName,
         item_type: item.itemType,
         item_id: item.id,
         item_snapshot: snapshot,
         sort_order: pins.length,
-      });
+      })
+      .select()
+      .maybeSingle();
 
     if (insertError) {
       if (insertError.code === '23505') {
+        setPins(prev => prev.filter(p => p.id !== optimisticPin.id));
         return;
       }
       console.error('[useCorkboardPins] pinItem insert error:', insertError);
       setError(insertError.message);
+      setPins(prev => prev.filter(p => p.id !== optimisticPin.id));
       return;
     }
 
-    await fetchPins();
+    if (inserted) {
+      setPins(prev =>
+        prev.map(p => (p.id === optimisticPin.id ? (inserted as PinRow) : p))
+      );
+    } else {
+      await fetchPins();
+    }
   }, [boardName, pins.length, fetchPins]);
 
   const unpinItem = useCallback(async (pinId: string): Promise<void> => {
+    setPins(prev => prev.filter(p => p.id !== pinId));
+
     const { error: deleteError } = await supabase
       .from('corkboard_pins')
       .delete()
@@ -111,10 +133,8 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
     if (deleteError) {
       console.error('[useCorkboardPins] unpinItem error:', deleteError);
       setError(deleteError.message);
-      return;
+      await fetchPins();
     }
-
-    await fetchPins();
   }, [fetchPins]);
 
   const reorderPins = useCallback(async (orderedPinIds: string[]): Promise<void> => {

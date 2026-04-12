@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { PanelRightOpen, PanelRightClose, ExternalLink, Pin } from 'lucide-react';
-import { useCorkboardPins, type CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
+import type { CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { StickyNoteCard } from './StickyNoteCard';
-import { Card, CardHeader, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 
@@ -68,12 +66,11 @@ function SkeletonGrid() {
 }
 
 export interface CorkboardPanelProps {
-  corkboard?: CorkboardPinsHandle;
+  corkboard: CorkboardPinsHandle;
 }
 
-export function CorkboardPanel({ corkboard: corkboardProp }: CorkboardPanelProps = {}) {
-  const ownCorkboard = useCorkboardPins();
-  const { pins, loading, error, unpinItem } = corkboardProp ?? ownCorkboard;
+export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
+  const { pins, loading, error, unpinItem } = corkboard;
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(true);
 
