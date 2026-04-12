@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   LayoutPanelLeft,
   List,
@@ -352,10 +352,17 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
 
   if (filters.query) {
     const q = filters.query.toLowerCase();
-    out = out.filter(i =>
-      i.title.toLowerCase().includes(q) ||
-      (i.snippet ?? '').toLowerCase().includes(q)
-    );
+    out = out.filter(i => {
+      const sourceText = (i.sources ?? [])
+        .map(s => `${s.label ?? ''} ${s.url ?? ''}`)
+        .join(' ')
+        .toLowerCase();
+      return (
+        i.title.toLowerCase().includes(q) ||
+        (i.snippet ?? '').toLowerCase().includes(q) ||
+        sourceText.includes(q)
+      );
+    });
   }
   if (filters.types?.length) {
     out = out.filter(i => filters.types!.includes(i.itemType));
@@ -555,6 +562,7 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [localQuery, setLocalQuery] = useState('');
 
   const {
     filters,
@@ -567,6 +575,20 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
     setSort,
     clearAll,
   } = useResearchFilters();
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalQuery(filters.query ?? '');
+  }, [filters.query]);
+
+  function handleSearchChange(value: string) {
+    setLocalQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setQuery(value.trim() || undefined);
+    }, 280);
+  }
 
   const { data: rawItems = [], isLoading, error } = useResearchResults(filters);
   const { pins, pinItem, unpinItem, isItemPinned } = corkboard;
@@ -665,7 +687,7 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
           side="right"
           className="p-0 flex flex-col w-full sm:max-w-none lg:w-[1000px] xl:w-[1160px]"
         >
-          <SheetHeader className="px-4 py-3 border-b border-border shrink-0">
+          <SheetHeader className="px-4 pt-3 pb-2 border-b border-border shrink-0 space-y-2">
             <div className="flex items-center justify-between">
               <SheetTitle className="text-base font-semibold">Research results</SheetTitle>
               <div className="flex items-center gap-1 mr-6">
@@ -692,6 +714,25 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
                   Corkboard
                 </button>
               </div>
+            </div>
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={localQuery}
+                onChange={e => handleSearchChange(e.target.value)}
+                placeholder="Search all items…"
+                className="w-full pl-8 pr-8 py-2 text-sm rounded-md border border-border bg-muted/40 placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-colors"
+              />
+              {localQuery && (
+                <button
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X size={13} strokeWidth={2.5} />
+                </button>
+              )}
             </div>
           </SheetHeader>
 
