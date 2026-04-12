@@ -164,7 +164,7 @@ export default function ConnectionMap() {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill="white"
-                fontSize="12"
+                fontSize="13"
                 className="pointer-events-none select-none"
               >
                 {pos.label}

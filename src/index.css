@@ -234,13 +234,14 @@ body {
   box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
 }
 .network-node-parent .network-node-label {
-  font-size: 12px;
+  font-size: 13px;
   color: #8aff8a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
   font-weight: 500;
+  transition: font-size 0.15s ease;
 }
 .network-node-parent .network-collapse-btn {
   width: 18px;
@@ -263,6 +264,9 @@ body {
   background: rgba(0, 255, 65, 0.1);
   box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
   animation: btn-pulse 1.2s ease-in-out infinite;
+}
+.network-node-parent:hover .network-node-label {
+  font-size: 14px;
 }
 .network-node-parent .network-count-badge {
   font-size: 10px;
@@ -299,13 +303,17 @@ body {
 .network-node-grandchild.tier-preliminary:hover {
   box-shadow: 0 0 8px rgba(160, 160, 160, 0.4);
 }
+.network-node-grandchild:hover .network-node-label {
+  font-size: 14px;
+}
 .network-node-grandchild .network-node-label {
-  font-size: 11px;
+  font-size: 13px;
   color: #c0c0c0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  transition: font-size 0.15s ease;
 }
 .network-node-more {
   background: #111;
@@ -322,9 +330,10 @@ body {
   box-shadow: 0 0 8px rgba(0, 255, 65, 0.25);
 }
 .network-node-more .network-node-label {
-  font-size: 9px;
+  font-size: 11px;
   color: rgba(0, 255, 65, 0.8);
   white-space: nowrap;
+  transition: font-size 0.15s ease;
 }
 
 /* Family Trees page — responsive overrides */
