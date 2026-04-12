@@ -10,12 +10,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '../ui/sheet';
 import { ScrollArea } from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
 import { ActiveFilterChips } from './ActiveFilterChips';
@@ -680,17 +674,15 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
     </>
   );
 
+  if (!open) return null;
+
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="right"
-          className="p-0 flex flex-col w-full sm:max-w-none lg:w-[1000px] xl:w-[1160px]"
-        >
-          <SheetHeader className="px-4 pt-3 pb-2 border-b border-border shrink-0 space-y-2">
-            <div className="flex items-center justify-between">
-              <SheetTitle className="text-base font-semibold">Research results</SheetTitle>
-              <div className="flex items-center gap-1 mr-6">
+      <div className="fixed inset-0 z-40 flex flex-col bg-background pt-16">
+        <div className="px-4 pt-3 pb-2 border-b border-border shrink-0 space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold">Research results</h2>
+            <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleSwitchMode('list')}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
@@ -734,7 +726,7 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
                 </button>
               )}
             </div>
-          </SheetHeader>
+          </div>
 
           {filterChips}
 
@@ -802,10 +794,9 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
               </>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
 
-      {/* Mobile bottom-sheet detail panel (rendered outside Sheet to avoid z-index nesting) */}
+      {/* Mobile bottom-sheet detail panel */}
       {selectedItem && (
         <div className="lg:hidden">
           <MobileDetailBottomSheet

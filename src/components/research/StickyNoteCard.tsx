@@ -150,7 +150,11 @@ export function StickyNoteCard({
     if (target.closest('button') || target.closest('a')) return;
     e.preventDefault();
     dragMoved.current = false;
-    board.dragStart(pin.id, e.clientX, e.clientY, position.x, position.y);
+    const el = boardRef.current;
+    const rect = el?.getBoundingClientRect();
+    const boardX = rect && el ? e.clientX - rect.left + el.scrollLeft : e.clientX;
+    const boardY = rect && el ? e.clientY - rect.top + el.scrollTop : e.clientY;
+    board.dragStart(pin.id, boardX, boardY, position.x, position.y);
   }
 
   function handleContextMenu(e: React.MouseEvent) {

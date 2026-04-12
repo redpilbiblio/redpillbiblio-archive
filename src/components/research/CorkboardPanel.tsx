@@ -205,10 +205,11 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
   const links      = snap ? extractLinks(snap) : [];
 
   const handleBoardMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = boardRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    const el = boardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     if (board.draggingId) {
-      board.dragMove(e.clientX - rect.left, e.clientY - rect.top);
+      board.dragMove(e.clientX - rect.left + el.scrollLeft, e.clientY - rect.top + el.scrollTop);
     }
     if (board.rubberBand) {
       board.rubberBandMove(e.clientX, e.clientY, boardRef);
@@ -229,10 +230,11 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
   const handleBoardTouchMove = useCallback((e: React.TouchEvent) => {
     if (!board.rubberBand && !board.draggingId) return;
     const touch = e.touches[0];
-    const rect = boardRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    const el = boardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     if (board.draggingId) {
-      board.dragMove(touch.clientX - rect.left, touch.clientY - rect.top);
+      board.dragMove(touch.clientX - rect.left + el.scrollLeft, touch.clientY - rect.top + el.scrollTop);
     }
     if (board.rubberBand) {
       board.rubberBandMove(touch.clientX, touch.clientY, boardRef);

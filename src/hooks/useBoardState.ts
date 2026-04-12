@@ -176,15 +176,15 @@ export function useBoardState(): BoardStateHandle {
     );
   }, [connections]);
 
-  const dragStart = useCallback((pinId: string, clientX: number, clientY: number, noteX: number, noteY: number) => {
-    dragOffsetRef.current = { dx: clientX - noteX, dy: clientY - noteY };
+  const dragStart = useCallback((pinId: string, boardX: number, boardY: number, noteX: number, noteY: number) => {
+    dragOffsetRef.current = { dx: boardX - noteX, dy: boardY - noteY };
     setDraggingId(pinId);
   }, []);
 
-  const dragMove = useCallback((clientX: number, clientY: number) => {
+  const dragMove = useCallback((boardX: number, boardY: number) => {
     if (!draggingId) return;
-    const newX = Math.max(0, clientX - dragOffsetRef.current.dx);
-    const newY = Math.max(0, clientY - dragOffsetRef.current.dy);
+    const newX = Math.max(0, boardX - dragOffsetRef.current.dx);
+    const newY = Math.max(0, boardY - dragOffsetRef.current.dy);
     setPositions(prev => ({ ...prev, [draggingId]: { x: newX, y: newY } }));
   }, [draggingId]);
 
