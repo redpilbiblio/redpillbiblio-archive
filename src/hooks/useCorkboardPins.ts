@@ -22,6 +22,7 @@ export type CorkboardPinsHandle = {
   error: string | null;
   pinItem: (item: ResearchItem) => Promise<void>;
   unpinItem: (pinId: string) => Promise<void>;
+  unpinAll: () => Promise<void>;
   reorderPins: (orderedPinIds: string[]) => Promise<void>;
   isItemPinned: (itemType: string, itemId: string) => boolean;
 };
@@ -137,6 +138,22 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
     }
   }, [fetchPins]);
 
+  const unpinAll = useCallback(async (): Promise<void> => {
+    setPins([]);
+
+    const { error: deleteError } = await supabase
+      .from('corkboard_pins')
+      .delete()
+      .eq('session_id', getSessionId())
+      .eq('board_name', boardName);
+
+    if (deleteError) {
+      console.error('[useCorkboardPins] unpinAll error:', deleteError);
+      setError(deleteError.message);
+      await fetchPins();
+    }
+  }, [boardName, fetchPins]);
+
   const reorderPins = useCallback(async (orderedPinIds: string[]): Promise<void> => {
     const updates = orderedPinIds.map((id, index) =>
       supabase
@@ -161,5 +178,5 @@ export function useCorkboardPins(boardName: string = 'default'): CorkboardPinsHa
     return pins.some(p => p.item_type === itemType && p.item_id === itemId);
   }, [pins]);
 
-  return { pins, loading, error, pinItem, unpinItem, reorderPins, isItemPinned };
+  return { pins, loading, error, pinItem, unpinItem, unpinAll, reorderPins, isItemPinned };
 }

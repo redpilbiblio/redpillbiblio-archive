@@ -88,6 +88,8 @@ export interface BoardStateHandle {
   updateConnectionColor: (connId: string, color: string) => void;
   removeConnection: (connId: string) => void;
   hasConnection: (fromId: string, toId: string) => boolean;
+  clearConnections: () => void;
+  clearLayout: () => void;
 
   currentColor: ConnectionColor;
   setCurrentColor: (c: ConnectionColor) => void;
@@ -233,6 +235,21 @@ export function useBoardState(): BoardStateHandle {
     setRubberBand(null);
   }, [addConnection, currentColor]);
 
+  const clearConnections = useCallback(() => {
+    setConnections([]);
+    setSelectedConnectionId(null);
+    try {
+      localStorage.removeItem(`researchBoardConnections:${sessionId}`);
+    } catch { /* ignore */ }
+  }, [sessionId]);
+
+  const clearLayout = useCallback(() => {
+    setPositions({});
+    try {
+      localStorage.removeItem(`researchBoardLayout:${sessionId}`);
+    } catch { /* ignore */ }
+  }, [sessionId]);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -255,6 +272,8 @@ export function useBoardState(): BoardStateHandle {
     updateConnectionColor,
     removeConnection,
     hasConnection,
+    clearConnections,
+    clearLayout,
     currentColor,
     setCurrentColor,
     connectingFrom,

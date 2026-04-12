@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { PanelRightOpen, PanelRightClose, ExternalLink, Pin, CircleHelp as HelpCircle, Trash2 } from 'lucide-react';
+import { PanelRightOpen, PanelRightClose, ExternalLink, Pin, CircleHelp as HelpCircle, Trash2, Scissors, Square as XSquare } from 'lucide-react';
 import type { CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { StickyNoteCard } from './StickyNoteCard';
 import { ScrollArea } from '../ui/scroll-area';
@@ -90,28 +90,40 @@ function ConnectionLine({ conn, x1, y1, x2, y2, selected, onSelect }: Connection
 
   return (
     <g>
+      {selected && (
+        <path
+          d={pathD}
+          stroke={hex}
+          strokeWidth={12}
+          strokeLinecap="round"
+          fill="none"
+          opacity={0.18}
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
       <path
         d={pathD}
         stroke="transparent"
-        strokeWidth={16}
+        strokeWidth={18}
         fill="none"
         className="cursor-pointer"
         onClick={onSelect}
+        title="Click to select — then delete with the toolbar"
       />
       <path
         d={pathD}
         stroke={hex}
-        strokeWidth={selected ? 3 : 2}
+        strokeWidth={selected ? 3.5 : 2}
         strokeLinecap="round"
         fill="none"
         opacity={selected ? 1 : 0.75}
         style={{
-          filter: selected ? `drop-shadow(0 0 4px ${hex}88)` : undefined,
+          filter: selected ? `drop-shadow(0 0 6px ${hex}cc)` : undefined,
           pointerEvents: 'none',
         }}
       />
       {selected && (
-        <circle cx={cpx} cy={cpy} r={4} fill={hex} opacity={0.9} style={{ pointerEvents: 'none' }} />
+        <circle cx={cpx} cy={cpy} r={5} fill={hex} opacity={0.95} style={{ pointerEvents: 'none' }} />
       )}
     </g>
   );
@@ -131,7 +143,7 @@ function ConnectionToolbar({ conn, x, y, onColorChange, onDelete, onDismiss }: C
     <div
       data-conn-toolbar="true"
       className="absolute z-50 flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-xl border border-border bg-background"
-      style={{ left: x - 80, top: y - 44, pointerEvents: 'auto' }}
+      style={{ left: x - 100, top: y - 48, pointerEvents: 'auto' }}
       onMouseDown={e => e.stopPropagation()}
       onClick={e => e.stopPropagation()}
     >
@@ -145,16 +157,17 @@ function ConnectionToolbar({ conn, x, y, onColorChange, onDelete, onDismiss }: C
             borderColor: conn.color === c.value ? '#fff' : 'transparent',
             boxShadow: conn.color === c.value ? `0 0 0 2px ${c.hex}` : 'none',
           }}
-          title={c.value}
+          title={`Change color to ${c.value}`}
         />
       ))}
       <div className="w-px h-4 bg-border mx-0.5" />
       <button
         onClick={onDelete}
-        className="p-0.5 rounded text-muted-foreground hover:text-red-500 transition-colors"
-        title="Remove connection"
+        className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition-colors"
+        title="Delete this connection"
       >
-        <Trash2 size={13} />
+        <Trash2 size={11} />
+        <span>Delete</span>
       </button>
       <button
         onClick={onDismiss}
@@ -172,7 +185,7 @@ export interface CorkboardPanelProps {
 }
 
 export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
-  const { pins, loading, error, unpinItem } = corkboard;
+  const { pins, loading, error, unpinItem, unpinAll } = corkboard;
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(true);
 
@@ -274,7 +287,7 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
       <div className="flex flex-col lg:flex-row h-full min-h-0 overflow-hidden">
         <div className="flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
 
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-900/10 border-b border-amber-900/15 shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 bg-amber-900/10 border-b border-amber-900/15 shrink-0 flex-wrap">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-900/60 mr-0.5">
               String
             </span>
@@ -295,6 +308,41 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
                 />
               ))}
             </div>
+
+            <div className="w-px h-4 bg-amber-900/20 mx-0.5" />
+
+            <button
+              onClick={() => {
+                if (board.connections.length === 0) return;
+                if (window.confirm('Remove all strings from this board?')) {
+                  board.clearConnections();
+                }
+              }}
+              disabled={board.connections.length === 0}
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-amber-900/70 hover:text-amber-900 hover:bg-amber-200/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Remove all string connections from the board"
+            >
+              <Scissors size={11} />
+              <span>Clear strings</span>
+            </button>
+
+            <button
+              onClick={() => {
+                if (pins.length === 0 && board.connections.length === 0) return;
+                if (window.confirm('Clear all pins, positions, and connections from this board?\n\nThis cannot be undone.')) {
+                  board.clearConnections();
+                  board.clearLayout();
+                  unpinAll();
+                  setSelectedPinId(null);
+                }
+              }}
+              disabled={pins.length === 0 && board.connections.length === 0}
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium text-red-700/70 hover:text-red-700 hover:bg-red-100/60 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title="Remove all pins and connections from the board"
+            >
+              <XSquare size={11} />
+              <span>Clear board</span>
+            </button>
 
             <div className="flex-1" />
 
