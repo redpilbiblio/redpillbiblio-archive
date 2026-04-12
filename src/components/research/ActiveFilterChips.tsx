@@ -69,12 +69,12 @@ export function ActiveFilterChips({
     );
   }
 
-  for (const slug of filters.pillarSlugs ?? []) {
+  for (const label of filters.pillars ?? []) {
     chips.push(
       <Chip
-        key={`pillar-${slug}`}
-        label={`Pillar: ${slugToLabel(slug)}`}
-        onRemove={() => onClearPillar(slug)}
+        key={`pillar-${label}`}
+        label={`Pillar: ${label}`}
+        onRemove={() => onClearPillar(label)}
       />
     );
   }

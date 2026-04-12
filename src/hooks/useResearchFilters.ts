@@ -23,7 +23,7 @@ export function useResearchFilters(): {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useMemo<ResearchFilters>(() => {
-    const pillarSlugs = splitParam(searchParams.get('pillar'));
+    const pillars = splitParam(searchParams.get('pillar'));
     const types = splitParam(searchParams.get('type')) as ResearchItemType[];
     const verificationTiers = splitParam(searchParams.get('tier')) as ResearchFilters['verificationTiers'];
     const tags = splitParam(searchParams.get('tags'));
@@ -36,7 +36,7 @@ export function useResearchFilters(): {
 
     return {
       ...(query ? { query } : {}),
-      ...(pillarSlugs.length ? { pillarSlugs } : {}),
+      ...(pillars.length ? { pillars } : {}),
       ...(types.length ? { types } : {}),
       ...(verificationTiers && verificationTiers.length ? { verificationTiers } : {}),
       ...(dateFrom ? { dateFrom } : {}),

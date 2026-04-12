@@ -24,14 +24,14 @@ const TYPE_CONFIG: Record<
   ResearchItemType,
   { label: string; icon: React.ComponentType<{ size?: number; className?: string }>; color: string; bg: string }
 > = {
-  document:   { label: 'Document',   icon: FileText,      color: 'text-teal-700',   bg: 'bg-teal-100' },
-  event:      { label: 'Event',      icon: Calendar,      color: 'text-blue-700',   bg: 'bg-blue-100' },
-  watchlist:  { label: 'Watchlist',  icon: ShieldAlert,   color: 'text-red-700',    bg: 'bg-red-100' },
-  conviction: { label: 'Conviction', icon: Gavel,         color: 'text-orange-700', bg: 'bg-orange-100' },
-  incident:   { label: 'Incident',   icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100' },
-  death:      { label: 'Death',      icon: Skull,         color: 'text-slate-700',  bg: 'bg-slate-100' },
-  trade:      { label: 'Trade',      icon: TrendingDown,  color: 'text-green-700',  bg: 'bg-green-100' },
-  family:     { label: 'Family',     icon: Users,         color: 'text-purple-700', bg: 'bg-purple-100' },
+  Document:   { label: 'Document',   icon: FileText,      color: 'text-teal-700',   bg: 'bg-teal-100' },
+  Event:      { label: 'Event',      icon: Calendar,      color: 'text-blue-700',   bg: 'bg-blue-100' },
+  Watchlist:  { label: 'Watchlist',  icon: ShieldAlert,   color: 'text-red-700',    bg: 'bg-red-100' },
+  Conviction: { label: 'Conviction', icon: Gavel,         color: 'text-orange-700', bg: 'bg-orange-100' },
+  Incident:   { label: 'Incident',   icon: AlertTriangle, color: 'text-amber-700',  bg: 'bg-amber-100' },
+  Death:      { label: 'Death',      icon: Skull,         color: 'text-slate-700',  bg: 'bg-slate-100' },
+  Trade:      { label: 'Trade',      icon: TrendingDown,  color: 'text-green-700',  bg: 'bg-green-100' },
+  Family:     { label: 'Family',     icon: Users,         color: 'text-purple-700', bg: 'bg-purple-100' },
 };
 
 const TIER_COLOR: Record<string, string> = {
@@ -54,15 +54,8 @@ function formatDate(date: string | null): string {
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-function formatPillarLabel(slug: string): string {
-  return slug
-    .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-}
-
 export function ResultCard({ item, pinned, onPinToggle, onOpenDetails }: ResultCardProps) {
-  const typeConfig = TYPE_CONFIG[item.itemType] ?? TYPE_CONFIG.document;
+  const typeConfig = TYPE_CONFIG[item.itemType] ?? TYPE_CONFIG.Document;
   const TypeIcon = typeConfig.icon;
 
   const tierDotClass = item.verificationTier ? TIER_COLOR[item.verificationTier] : null;
@@ -103,13 +96,13 @@ export function ResultCard({ item, pinned, onPinToggle, onOpenDetails }: ResultC
           {typeConfig.label}
         </span>
 
-        {item.pillarSlug && (
-          <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted text-muted-foreground uppercase tracking-wide max-w-[72px] truncate text-center">
-            {formatPillarLabel(item.pillarSlug)}
+        {item.pillar && (
+          <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-medium bg-muted text-muted-foreground uppercase tracking-wide max-w-[72px] truncate text-center" title={item.pillar}>
+            {item.pillar}
           </span>
         )}
 
-        {!item.pillarSlug && item.dynastyName && (
+        {!item.pillar && item.dynastyName && (
           <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-medium bg-amber-100 text-amber-800 max-w-[72px] truncate text-center">
             {item.dynastyName}
           </span>

@@ -5,21 +5,9 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { useResearchFilters } from '../../hooks/useResearchFilters';
 import type { ResearchItemType } from '../../lib/researchItems';
+import { CANONICAL_PILLARS } from '../../lib/pillarUtils';
 
 export interface ResearchFilterSidebarProps {}
-
-const PILLARS: { slug: string; label: string }[] = [
-  { slug: 'financial-systems',                       label: 'Financial Systems' },
-  { slug: 'media-manipulation',                      label: 'Media Manipulation' },
-  { slug: 'health-transparency',                     label: 'Health Transparency' },
-  { slug: 'elections-governance',                    label: 'Elections & Governance' },
-  { slug: 'war-intelligence',                        label: 'War & Intelligence' },
-  { slug: 'energy-suppressed-technology',            label: 'Energy & Suppressed Technology' },
-  { slug: 'child-safety-trafficking',                label: 'Child Safety & Trafficking' },
-  { slug: 'space-black-budget',                      label: 'Space & Black Budget' },
-  { slug: 'ai-surveillance',                         label: 'AI & Surveillance' },
-  { slug: 'environmental-corporate-accountability',  label: 'Environmental & Corporate Accountability' },
-];
 
 const TYPES: { value: ResearchItemType; label: string }[] = [
   { value: 'Document',   label: 'Document' },
@@ -100,13 +88,13 @@ export function ResearchFilterSidebar(_props: ResearchFilterSidebarProps) {
     setSort,
   } = useResearchFilters();
 
-  const activePillars = filters.pillarSlugs    ?? [];
+  const activePillars = filters.pillars          ?? [];
   const activeTypes   = filters.types           ?? [];
   const activeTiers   = filters.verificationTiers ?? [];
 
-  function togglePillar(slug: string, checked: boolean) {
+  function togglePillar(label: string, checked: boolean) {
     setPillars(
-      checked ? [...activePillars, slug] : activePillars.filter(s => s !== slug)
+      checked ? [...activePillars, label] : activePillars.filter(s => s !== label)
     );
   }
 
@@ -133,13 +121,13 @@ export function ResearchFilterSidebar(_props: ResearchFilterSidebarProps) {
   return (
     <div className="h-full overflow-y-auto text-sm">
       <Section title="Pillar">
-        {PILLARS.map(p => (
+        {CANONICAL_PILLARS.map(label => (
           <CheckRow
-            key={p.slug}
-            id={`pillar-${p.slug}`}
-            label={p.label}
-            checked={activePillars.includes(p.slug)}
-            onCheckedChange={c => togglePillar(p.slug, c)}
+            key={label}
+            id={`pillar-${label}`}
+            label={label}
+            checked={activePillars.includes(label)}
+            onCheckedChange={c => togglePillar(label, c)}
           />
         ))}
       </Section>

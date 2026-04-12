@@ -194,6 +194,33 @@ export const CONNECTED_PILLARS: Record<string, string[]> = {
   'environmental-corporate-accountability': ['financial-systems', 'health-transparency', 'media-manipulation'],
 };
 
+export const CANONICAL_PILLARS = [
+  'Financial Systems',
+  'Media Manipulation',
+  'Health Transparency',
+  'Elections & Governance',
+  'War & Intelligence',
+  'Energy & Suppressed Technology',
+  'Child Safety & Trafficking',
+  'Space & Black Budget',
+  'AI & Surveillance',
+  'Environmental & Corporate Accountability',
+] as const;
+
+export type CanonicalPillar = (typeof CANONICAL_PILLARS)[number];
+
+export function normalizePillar(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const slug = normalizePillarSlug(raw);
+  if (slug) {
+    const config = PILLAR_CONFIGS.find(p => p.slug === slug);
+    if (config) return config.canonicalName;
+  }
+  const byName = normalizePillarName(raw);
+  if ((CANONICAL_PILLARS as readonly string[]).includes(byName)) return byName;
+  return null;
+}
+
 export const normalizeDocumentType = (type: string): string => {
   const mapping: Record<string, string> = {
     'academic': 'Academic',

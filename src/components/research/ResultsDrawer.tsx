@@ -7,6 +7,7 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -24,8 +25,9 @@ import { CorkboardPanel } from './CorkboardPanel';
 import { useResearchFilters } from '../../hooks/useResearchFilters';
 import type { CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { supabase } from '../../lib/supabase';
-import type { ResearchFilters, ResearchItem } from '../../lib/researchItems';
-import { normalizePillarSlug, PILLAR_CONFIGS } from '../../lib/pillarUtils';
+import type { ResearchFilters, ResearchItem, SourceLink } from '../../lib/researchItems';
+import { extractDomain } from '../../lib/researchItems';
+import { normalizePillarSlug, normalizePillar, CANONICAL_PILLARS } from '../../lib/pillarUtils';
 import { dynastiesIndex } from '../../data/dynasties_index';
 import governmentConvictions from '../../data/government_convictions.json';
 import corporateConvictions from '../../data/corporate_convictions.json';
@@ -37,9 +39,9 @@ import religiousConvictions from '../../data/religious_clergy_convictions.json';
 import congressTrades from '../../data/data_congress_trades.json';
 import suspiciousDeathsCsv from '../../data/suspicious_deaths_new.csv?raw';
 
-function parseCsvDeaths(raw: string): Array<{ name: string; date: string; occupation: string; connection: string }> {
+function parseCsvDeaths(raw: string): Array<{ name: string; date: string; occupation: string; connection: string; sources: string }> {
   const lines = raw.trim().split('\n');
-  const results: Array<{ name: string; date: string; occupation: string; connection: string }> = [];
+  const results: Array<{ name: string; date: string; occupation: string; connection: string; sources: string }> = [];
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
@@ -59,10 +61,34 @@ function parseCsvDeaths(raw: string): Array<{ name: string; date: string; occupa
     }
     cols.push(cur);
     if (cols.length >= 4) {
-      results.push({ date: cols[0], name: cols[1], occupation: cols[3], connection: cols[4] ?? '' });
+      results.push({
+        date: cols[0],
+        name: cols[1],
+        occupation: cols[3],
+        connection: cols[4] ?? '',
+        sources: cols[8] ?? '',
+      });
     }
   }
   return results;
+}
+
+function safeUrl(s: unknown): string | null {
+  if (typeof s !== 'string' || !s) return null;
+  try { new URL(s); return s; } catch { return null; }
+}
+
+function buildSourceLinks(...urls: (string | null | undefined)[]): SourceLink[] {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+  for (const u of urls) {
+    const valid = safeUrl(u);
+    if (valid && !seen.has(valid)) {
+      seen.add(valid);
+      links.push({ label: extractDomain(valid), url: valid });
+    }
+  }
+  return links;
 }
 
 export interface ResultsDrawerProps {
@@ -73,6 +99,100 @@ export interface ResultsDrawerProps {
 
 type ViewMode = 'list' | 'corkboard';
 
+type DocRow = Record<string, unknown>;
+type EventRow = Record<string, unknown>;
+type EnemyRow = Record<string, unknown>;
+
+function docSources(d: DocRow): SourceLink[] {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+  const primary = safeUrl(d.source_url);
+  if (primary && !seen.has(primary)) { seen.add(primary); links.push({ label: extractDomain(primary), url: primary }); }
+  const meta = d.metadata as Record<string, unknown> | null;
+  if (meta) {
+    const addl = meta.additional_sources;
+    if (Array.isArray(addl)) {
+      for (const s of addl) {
+        if (s && typeof s === 'object') {
+          const obj = s as Record<string, unknown>;
+          const u = safeUrl(obj.url);
+          if (u && !seen.has(u)) {
+            seen.add(u);
+            links.push({ label: typeof obj.name === 'string' ? obj.name : extractDomain(u), url: u });
+          }
+        }
+      }
+    }
+  }
+  return links;
+}
+
+function eventSources(e: EventRow): SourceLink[] {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+  const meta = e.metadata as Record<string, unknown> | null;
+  if (meta) {
+    const src = meta.source_url;
+    if (typeof src === 'string') {
+      const u = safeUrl(src);
+      if (u && !seen.has(u)) { seen.add(u); links.push({ label: extractDomain(u), url: u }); }
+    }
+    const sources = meta.sources;
+    if (Array.isArray(sources)) {
+      for (const s of sources) {
+        if (typeof s === 'string') {
+          const u = safeUrl(s);
+          if (u && !seen.has(u)) { seen.add(u); links.push({ label: extractDomain(u), url: u }); }
+        }
+        if (s && typeof s === 'object') {
+          const obj = s as Record<string, unknown>;
+          const u = safeUrl(obj.url ?? obj.href);
+          if (u && !seen.has(u)) {
+            seen.add(u);
+            links.push({ label: typeof obj.name === 'string' ? obj.name : extractDomain(u), url: u });
+          }
+        }
+      }
+    }
+  }
+  return links;
+}
+
+function enemySources(e: EnemyRow): SourceLink[] {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+  const raw = e.sources;
+  if (Array.isArray(raw)) {
+    for (const s of raw) {
+      if (s && typeof s === 'object') {
+        const obj = s as Record<string, unknown>;
+        const u = safeUrl(obj.url);
+        if (u && !seen.has(u)) {
+          seen.add(u);
+          links.push({ label: typeof obj.name === 'string' ? obj.name : extractDomain(u), url: u });
+        }
+      }
+    }
+  }
+  return links;
+}
+
+type ConvictionEntry = Record<string, unknown>;
+
+function convictionSources(c: ConvictionEntry): SourceLink[] {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+  for (let i = 1; i <= 5; i++) {
+    const u = safeUrl(c[`source${i}_url`]);
+    const desc = c[`source${i}_description`];
+    if (u && !seen.has(u)) {
+      seen.add(u);
+      links.push({ label: typeof desc === 'string' && desc ? desc : extractDomain(u), url: u });
+    }
+  }
+  return links;
+}
+
 function useResearchResults(filters: ResearchFilters) {
   return useQuery({
     queryKey: ['research-results', filters.sort],
@@ -82,56 +202,69 @@ function useResearchResults(filters: ResearchFilters) {
       const [docsRes, eventsRes, enemiesRes] = await Promise.all([
         supabase
           .from('documents')
-          .select('id, title, date_published, document_type, verification_tier, tags, snippet, pillar_slug')
+          .select('id, title, description, date_published, document_type, verification_tier, tags, source_url, metadata')
           .order('date_published', { ascending })
-          .limit(300),
+          .limit(600),
         supabase
           .from('events')
-          .select('id, title, event_date, pillar, snippet')
+          .select('id, title, description, event_date, pillar, metadata')
           .order('event_date', { ascending })
-          .limit(200),
+          .limit(400),
         supabase
           .from('enemies_of_truth')
-          .select('id, name, date_added, severity, summary')
+          .select('id, name, date_added, severity, summary, sources')
           .order('date_added', { ascending })
-          .limit(200),
+          .limit(300),
       ]);
 
       const items: ResearchItem[] = [];
 
-      for (const d of docsRes.data ?? []) {
+      for (const d of (docsRes.data ?? []) as DocRow[]) {
+        const meta = d.metadata as Record<string, unknown> | null;
+        const rawPillar = (meta?.pillar as string) ?? (d.pillar_slug as string) ?? (d.document_type as string) ?? null;
+        const pillarSlug = normalizePillarSlug(rawPillar);
+        const pillar = normalizePillar(rawPillar);
         items.push({
-          id: d.id,
-          itemType: 'Document' as const,
-          title: d.title,
-          date: d.date_published ?? null,
-          pillarSlug: normalizePillarSlug((d as Record<string, unknown>).pillar_slug as string ?? d.document_type ?? null),
-          verificationTier: d.verification_tier as ResearchItem['verificationTier'] ?? null,
+          id: d.id as string,
+          itemType: 'Document',
+          title: d.title as string,
+          date: (d.date_published as string) ?? null,
+          pillarSlug,
+          pillar,
+          sources: docSources(d),
+          verificationTier: (d.verification_tier as ResearchItem['verificationTier']) ?? null,
           tags: (d.tags as string[] | null) ?? undefined,
-          snippet: d.snippet ?? null,
+          snippet: (d.description as string) ?? null,
         });
       }
 
-      for (const e of eventsRes.data ?? []) {
+      for (const e of (eventsRes.data ?? []) as EventRow[]) {
+        const rawPillar = (e.pillar as string) ?? null;
+        const pillarSlug = normalizePillarSlug(rawPillar);
+        const pillar = normalizePillar(rawPillar);
         items.push({
-          id: e.id,
-          itemType: 'Event' as const,
-          title: e.title,
-          date: e.event_date ?? null,
-          pillarSlug: normalizePillarSlug(e.pillar ?? null),
-          snippet: e.snippet ?? null,
+          id: e.id as string,
+          itemType: 'Event',
+          title: e.title as string,
+          date: (e.event_date as string) ?? null,
+          pillarSlug,
+          pillar,
+          sources: eventSources(e),
+          snippet: (e.description as string) ?? null,
         });
       }
 
-      for (const en of enemiesRes.data ?? []) {
+      for (const en of (enemiesRes.data ?? []) as EnemyRow[]) {
         items.push({
-          id: en.id,
-          itemType: 'Watchlist' as const,
-          title: en.name,
-          date: en.date_added ?? null,
+          id: en.id as string,
+          itemType: 'Watchlist',
+          title: en.name as string,
+          date: (en.date_added as string) ?? null,
           pillarSlug: null,
-          severity: en.severity ?? null,
-          snippet: en.summary ?? null,
+          pillar: null,
+          sources: enemySources(en),
+          severity: (en.severity as string) ?? null,
+          snippet: (en.summary as string) ?? null,
         });
       }
 
@@ -143,16 +276,19 @@ function useResearchResults(filters: ResearchFilters) {
         ...militaryConvictions,
         ...medicalConvictions,
         ...religiousConvictions,
-      ] as Array<{ name: string; charges?: string; conviction_date?: string; status?: string; role_title?: string }>;
+      ] as ConvictionEntry[];
 
       allConvictions.forEach((c, idx) => {
+        const rawPillar = (c.category as string) ?? (c.subcategory as string) ?? null;
         items.push({
           id: `conviction-${idx}`,
-          itemType: 'Conviction' as const,
-          title: c.name,
-          date: c.conviction_date ?? null,
-          pillarSlug: null,
-          snippet: c.charges ?? c.status ?? null,
+          itemType: 'Conviction',
+          title: c.name as string,
+          date: (c.conviction_date as string) ?? null,
+          pillarSlug: normalizePillarSlug(rawPillar),
+          pillar: normalizePillar(rawPillar),
+          sources: convictionSources(c),
+          snippet: (c.charges as string) ?? (c.status as string) ?? null,
         });
       });
 
@@ -160,33 +296,38 @@ function useResearchResults(filters: ResearchFilters) {
       deaths.forEach((d, idx) => {
         items.push({
           id: `death-${idx}`,
-          itemType: 'Death' as const,
+          itemType: 'Death',
           title: d.name,
           date: d.date || null,
           pillarSlug: null,
+          pillar: null,
+          sources: buildSourceLinks(d.sources),
           snippet: d.occupation ? `${d.occupation}${d.connection ? ` — ${d.connection}` : ''}` : d.connection || null,
         });
       });
 
-      (congressTrades as Array<{ Date: string; Member: string; Ticker: string; Company: string; Type: string; Amount: string }>)
-        .forEach((t, idx) => {
-          items.push({
-            id: `trade-${idx}`,
-            itemType: 'Trade' as const,
-            title: `${t.Member} — ${t.Ticker}`,
-            date: t.Date || null,
-            pillarSlug: 'financial-systems',
-            snippet: `${t.Type} · ${t.Company} · ${t.Amount}`,
-          });
+      (congressTrades as Array<Record<string, string>>).forEach((t, idx) => {
+        items.push({
+          id: `trade-${idx}`,
+          itemType: 'Trade',
+          title: `${t.Member} — ${t.Ticker}`,
+          date: t.Date || null,
+          pillarSlug: 'financial-systems',
+          pillar: 'Financial Systems',
+          sources: buildSourceLinks(t.Source),
+          snippet: `${t.Type} · ${t.Company} · ${t.Amount}`,
         });
+      });
 
       dynastiesIndex.forEach(dynasty => {
         items.push({
           id: `dynasty-${dynasty.id}`,
-          itemType: 'Family' as const,
+          itemType: 'Family',
           title: dynasty.title,
           date: null,
           pillarSlug: null,
+          pillar: null,
+          sources: [],
           dynastyName: dynasty.id,
           snippet: dynasty.tagline,
         });
@@ -204,7 +345,7 @@ function useResearchResults(filters: ResearchFilters) {
   });
 }
 
-const VALID_PILLAR_SLUGS = new Set(PILLAR_CONFIGS.map(p => p.slug));
+const CANONICAL_SET = new Set<string>(CANONICAL_PILLARS);
 
 function applyFilters(items: ResearchItem[], filters: ResearchFilters): ResearchItem[] {
   let out = items;
@@ -219,8 +360,16 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
   if (filters.types?.length) {
     out = out.filter(i => filters.types!.includes(i.itemType));
   }
-  if (filters.pillarSlugs?.length) {
-    const selected = filters.pillarSlugs.filter(s => VALID_PILLAR_SLUGS.has(s));
+  if (filters.pillars?.length) {
+    const selected = filters.pillars.filter(p => CANONICAL_SET.has(p));
+    if (selected.length) {
+      out = [
+        ...out.filter(i => i.pillar != null && selected.includes(i.pillar)),
+        ...out.filter(i => i.pillar == null || !selected.includes(i.pillar)),
+      ];
+    }
+  } else if (filters.pillarSlugs?.length) {
+    const selected = filters.pillarSlugs;
     if (selected.length) {
       out = [
         ...out.filter(i => i.pillarSlug != null && selected.includes(i.pillarSlug)),
@@ -247,7 +396,8 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
 function countActiveFilters(filters: ResearchFilters): number {
   let n = 0;
   if (filters.query) n++;
-  if (filters.pillarSlugs?.length) n += filters.pillarSlugs.length;
+  if (filters.pillars?.length) n += filters.pillars.length;
+  else if (filters.pillarSlugs?.length) n += filters.pillarSlugs.length;
   if (filters.types?.length) n += filters.types.length;
   if (filters.verificationTiers?.length) n += filters.verificationTiers.length;
   if (filters.dateFrom) n++;
@@ -273,9 +423,9 @@ function DetailContent({ item }: { item: ResearchItem }) {
         <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-secondary text-secondary-foreground uppercase tracking-wide">
           {item.itemType}
         </span>
-        {item.pillarSlug && (
+        {item.pillar && (
           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground uppercase tracking-wide">
-            {item.pillarSlug.replace(/-/g, ' ')}
+            {item.pillar}
           </span>
         )}
         {item.dynastyName && (
@@ -301,6 +451,29 @@ function DetailContent({ item }: { item: ResearchItem }) {
           <p className="text-sm text-foreground leading-relaxed">{item.snippet}</p>
         </div>
       )}
+
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">Sources</p>
+        {item.sources.length > 0 ? (
+          <ul className="space-y-1.5">
+            {item.sources.map((src, idx) => (
+              <li key={idx}>
+                <a
+                  href={src.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors break-all"
+                >
+                  <ExternalLink size={11} className="shrink-0" />
+                  {src.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No primary source linked yet.</p>
+        )}
+      </div>
 
       {item.tags && item.tags.length > 0 && (
         <div>
@@ -423,7 +596,7 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
       <ActiveFilterChips
         filters={filters}
         onClearQuery={() => setQuery(undefined)}
-        onClearPillar={s => setPillars((filters.pillarSlugs ?? []).filter(p => p !== s))}
+        onClearPillar={s => setPillars((filters.pillars ?? []).filter(p => p !== s))}
         onClearType={t => setTypes((filters.types ?? []).filter(x => x !== t) as ResearchItem['itemType'][])}
         onClearVerificationTier={tier => setVerificationTiers((filters.verificationTiers ?? []).filter(x => x !== tier) as ResearchFilters['verificationTiers'])}
         onClearDateRange={() => setDateRange(null, null)}
