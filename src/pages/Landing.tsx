@@ -253,7 +253,7 @@ export function Landing() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Search ${docCountDisplay} evidence items...`}
+                placeholder="Search ALL site items..."
                 className="w-full bg-[#111] border-2 border-[#00ff41]/35 rounded-lg px-5 py-4
                            font-mono text-[#e5e5e5] text-base placeholder-[#3a3a3a]
                            focus:border-[#00ff41] focus:outline-none focus:ring-2 focus:ring-[#00ff41]/15
