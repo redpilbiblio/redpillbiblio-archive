@@ -245,24 +245,6 @@ export function Landing() {
               A searchable archive of court filings, declassified records, government documents, financial disclosures, and other primary-source evidence.
             </p>
 
-            {/* Trust signals */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {TRUST_SIGNALS.map((s) => (
-                <span
-                  key={s}
-                  className="font-mono text-xs text-[#4a4a4a] border border-[#1c1c1c] bg-[#0f0f0f] rounded px-2.5 py-1"
-                >
-                  {s}
-                </span>
-              ))}
-              <Link
-                to="/methodology"
-                className="font-mono text-xs text-[#00ff41]/35 hover:text-[#00ff41]/60 border border-[#1c1c1c] bg-[#0f0f0f] rounded px-2.5 py-1 transition-colors inline-flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-[#00ff41]/30"
-              >
-                How we verify <ArrowRight size={10} />
-              </Link>
-            </div>
-
             {/* Search */}
             <div className="w-full max-w-2xl mx-auto relative mb-4">
               <input
