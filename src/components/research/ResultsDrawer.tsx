@@ -25,7 +25,7 @@ import { useResearchFilters } from '../../hooks/useResearchFilters';
 import type { CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { supabase } from '../../lib/supabase';
 import type { ResearchFilters, ResearchItem } from '../../lib/researchItems';
-import { normalizePillarSlug } from '../../lib/pillarUtils';
+import { normalizePillarSlug, PILLAR_CONFIGS } from '../../lib/pillarUtils';
 import { dynastiesIndex } from '../../data/dynasties_index';
 import governmentConvictions from '../../data/government_convictions.json';
 import corporateConvictions from '../../data/corporate_convictions.json';
@@ -102,7 +102,7 @@ function useResearchResults(filters: ResearchFilters) {
       for (const d of docsRes.data ?? []) {
         items.push({
           id: d.id,
-          itemType: 'document',
+          itemType: 'Document' as const,
           title: d.title,
           date: d.date_published ?? null,
           pillarSlug: normalizePillarSlug((d as Record<string, unknown>).pillar_slug as string ?? d.document_type ?? null),
@@ -115,7 +115,7 @@ function useResearchResults(filters: ResearchFilters) {
       for (const e of eventsRes.data ?? []) {
         items.push({
           id: e.id,
-          itemType: 'event',
+          itemType: 'Event' as const,
           title: e.title,
           date: e.event_date ?? null,
           pillarSlug: normalizePillarSlug(e.pillar ?? null),
@@ -126,7 +126,7 @@ function useResearchResults(filters: ResearchFilters) {
       for (const en of enemiesRes.data ?? []) {
         items.push({
           id: en.id,
-          itemType: 'watchlist',
+          itemType: 'Watchlist' as const,
           title: en.name,
           date: en.date_added ?? null,
           pillarSlug: null,
@@ -148,7 +148,7 @@ function useResearchResults(filters: ResearchFilters) {
       allConvictions.forEach((c, idx) => {
         items.push({
           id: `conviction-${idx}`,
-          itemType: 'conviction',
+          itemType: 'Conviction' as const,
           title: c.name,
           date: c.conviction_date ?? null,
           pillarSlug: null,
@@ -160,7 +160,7 @@ function useResearchResults(filters: ResearchFilters) {
       deaths.forEach((d, idx) => {
         items.push({
           id: `death-${idx}`,
-          itemType: 'death',
+          itemType: 'Death' as const,
           title: d.name,
           date: d.date || null,
           pillarSlug: null,
@@ -172,7 +172,7 @@ function useResearchResults(filters: ResearchFilters) {
         .forEach((t, idx) => {
           items.push({
             id: `trade-${idx}`,
-            itemType: 'trade',
+            itemType: 'Trade' as const,
             title: `${t.Member} — ${t.Ticker}`,
             date: t.Date || null,
             pillarSlug: 'financial-systems',
@@ -183,7 +183,7 @@ function useResearchResults(filters: ResearchFilters) {
       dynastiesIndex.forEach(dynasty => {
         items.push({
           id: `dynasty-${dynasty.id}`,
-          itemType: 'family',
+          itemType: 'Family' as const,
           title: dynasty.title,
           date: null,
           pillarSlug: null,
@@ -204,6 +204,8 @@ function useResearchResults(filters: ResearchFilters) {
   });
 }
 
+const VALID_PILLAR_SLUGS = new Set(PILLAR_CONFIGS.map(p => p.slug));
+
 function applyFilters(items: ResearchItem[], filters: ResearchFilters): ResearchItem[] {
   let out = items;
 
@@ -218,20 +220,16 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
     out = out.filter(i => filters.types!.includes(i.itemType));
   }
   if (filters.pillarSlugs?.length) {
-    const selected = filters.pillarSlugs;
-    out = [
-      ...out.filter(i => i.pillarSlug != null && selected.includes(i.pillarSlug)),
-      ...out.filter(i => i.pillarSlug == null || !selected.includes(i.pillarSlug)),
-    ];
+    const selected = filters.pillarSlugs.filter(s => VALID_PILLAR_SLUGS.has(s));
+    if (selected.length) {
+      out = [
+        ...out.filter(i => i.pillarSlug != null && selected.includes(i.pillarSlug)),
+        ...out.filter(i => i.pillarSlug == null || !selected.includes(i.pillarSlug)),
+      ];
+    }
   }
   if (filters.verificationTiers?.length) {
     out = out.filter(i => i.verificationTier && filters.verificationTiers!.includes(i.verificationTier));
-  }
-  if (filters.severities?.length) {
-    out = out.filter(i => i.severity && filters.severities!.includes(i.severity.toUpperCase()));
-  }
-  if (filters.dynastyNames?.length) {
-    out = out.filter(i => i.dynastyName && filters.dynastyNames!.includes(i.dynastyName));
   }
   if (filters.dateFrom) {
     out = out.filter(i => i.date && i.date >= filters.dateFrom!);
@@ -252,8 +250,6 @@ function countActiveFilters(filters: ResearchFilters): number {
   if (filters.pillarSlugs?.length) n += filters.pillarSlugs.length;
   if (filters.types?.length) n += filters.types.length;
   if (filters.verificationTiers?.length) n += filters.verificationTiers.length;
-  if (filters.severities?.length) n += filters.severities.length;
-  if (filters.dynastyNames?.length) n += filters.dynastyNames.length;
   if (filters.dateFrom) n++;
   if (filters.dateTo) n++;
   if (filters.tags?.length) n += filters.tags.length;
@@ -393,8 +389,6 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
     setPillars,
     setTypes,
     setVerificationTiers,
-    setSeverities,
-    setDynastyNames,
     setDateRange,
     setTags,
     setSort,
@@ -432,8 +426,6 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
         onClearPillar={s => setPillars((filters.pillarSlugs ?? []).filter(p => p !== s))}
         onClearType={t => setTypes((filters.types ?? []).filter(x => x !== t) as ResearchItem['itemType'][])}
         onClearVerificationTier={tier => setVerificationTiers((filters.verificationTiers ?? []).filter(x => x !== tier) as ResearchFilters['verificationTiers'])}
-        onClearSeverity={sev => setSeverities((filters.severities ?? []).filter(x => x !== sev))}
-        onClearDynastyName={name => setDynastyNames((filters.dynastyNames ?? []).filter(x => x !== name))}
         onClearDateRange={() => setDateRange(null, null)}
         onClearTag={tag => setTags((filters.tags ?? []).filter(x => x !== tag))}
         onClearSort={() => setSort(undefined)}

@@ -22,14 +22,14 @@ const PILLARS: { slug: string; label: string }[] = [
 ];
 
 const TYPES: { value: ResearchItemType; label: string }[] = [
-  { value: 'document',   label: 'Document' },
-  { value: 'event',      label: 'Event' },
-  { value: 'watchlist',  label: 'Watchlist' },
-  { value: 'conviction', label: 'Conviction' },
-  { value: 'incident',   label: 'Incident' },
-  { value: 'death',      label: 'Death' },
-  { value: 'trade',      label: 'Trade' },
-  { value: 'family',     label: 'Family' },
+  { value: 'Document',   label: 'Document' },
+  { value: 'Event',      label: 'Event' },
+  { value: 'Watchlist',  label: 'Watchlist' },
+  { value: 'Conviction', label: 'Conviction' },
+  { value: 'Incident',   label: 'Incident' },
+  { value: 'Death',      label: 'Death' },
+  { value: 'Trade',      label: 'Trade' },
+  { value: 'Family',     label: 'Family' },
 ];
 
 const TIERS: { value: 'verified' | 'corroborated' | 'preliminary'; label: string }[] = [
@@ -37,10 +37,6 @@ const TIERS: { value: 'verified' | 'corroborated' | 'preliminary'; label: string
   { value: 'corroborated', label: 'Corroborated' },
   { value: 'preliminary',  label: 'Preliminary' },
 ];
-
-const SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-
-const DYNASTIES = ['Bush', 'Clinton', 'Rockefeller', 'Rothschild', 'Soros', 'Gates'];
 
 interface SectionProps {
   title: string;
@@ -100,17 +96,13 @@ export function ResearchFilterSidebar(_props: ResearchFilterSidebarProps) {
     setPillars,
     setTypes,
     setVerificationTiers,
-    setSeverities,
-    setDynastyNames,
     setDateRange,
     setSort,
   } = useResearchFilters();
 
-  const activePillars   = filters.pillarSlugs    ?? [];
-  const activeTypes     = filters.types           ?? [];
-  const activeTiers     = filters.verificationTiers ?? [];
-  const activeSeverities = filters.severities     ?? [];
-  const activeDynasties = filters.dynastyNames    ?? [];
+  const activePillars = filters.pillarSlugs    ?? [];
+  const activeTypes   = filters.types           ?? [];
+  const activeTiers   = filters.verificationTiers ?? [];
 
   function togglePillar(slug: string, checked: boolean) {
     setPillars(
@@ -133,24 +125,8 @@ export function ResearchFilterSidebar(_props: ResearchFilterSidebarProps) {
     setVerificationTiers(next as typeof activeTiers);
   }
 
-  function toggleSeverity(value: string, checked: boolean) {
-    setSeverities(
-      checked ? [...activeSeverities, value] : activeSeverities.filter(s => s !== value)
-    );
-  }
-
-  function toggleDynasty(name: string, checked: boolean) {
-    setDynastyNames(
-      checked ? [...activeDynasties, name] : activeDynasties.filter(d => d !== name)
-    );
-  }
-
   const showVerification =
-    activeTypes.length === 0 || activeTypes.includes('document');
-  const showSeverity =
-    activeTypes.length === 0 || activeTypes.includes('watchlist');
-  const showDynasty =
-    activeTypes.length === 0 || activeTypes.includes('family');
+    activeTypes.length === 0 || activeTypes.includes('Document');
 
   const hasDateRange = !!(filters.dateFrom || filters.dateTo);
 
@@ -189,34 +165,6 @@ export function ResearchFilterSidebar(_props: ResearchFilterSidebarProps) {
               label={t.label}
               checked={activeTiers.includes(t.value)}
               onCheckedChange={c => toggleTier(t.value, c)}
-            />
-          ))}
-        </Section>
-      )}
-
-      {showSeverity && (
-        <Section title="Severity">
-          {SEVERITIES.map(s => (
-            <CheckRow
-              key={s}
-              id={`severity-${s}`}
-              label={s.charAt(0) + s.slice(1).toLowerCase()}
-              checked={activeSeverities.includes(s)}
-              onCheckedChange={c => toggleSeverity(s, c)}
-            />
-          ))}
-        </Section>
-      )}
-
-      {showDynasty && (
-        <Section title="Dynasty">
-          {DYNASTIES.map(d => (
-            <CheckRow
-              key={d}
-              id={`dynasty-${d}`}
-              label={d}
-              checked={activeDynasties.includes(d)}
-              onCheckedChange={c => toggleDynasty(d, c)}
             />
           ))}
         </Section>

@@ -1,12 +1,12 @@
 export type ResearchItemType =
-  | 'document'
-  | 'event'
-  | 'watchlist'
-  | 'conviction'
-  | 'incident'
-  | 'death'
-  | 'trade'
-  | 'family';
+  | 'Document'
+  | 'Event'
+  | 'Watchlist'
+  | 'Conviction'
+  | 'Incident'
+  | 'Death'
+  | 'Trade'
+  | 'Family';
 
 export interface ResearchItem {
   id: string;
@@ -26,8 +26,6 @@ export interface ResearchFilters {
   pillarSlugs?: string[];
   types?: ResearchItemType[];
   verificationTiers?: ('verified' | 'corroborated' | 'preliminary')[];
-  severities?: string[];
-  dynastyNames?: string[];
   dateFrom?: string | null;
   dateTo?: string | null;
   tags?: string[];
@@ -45,7 +43,7 @@ export function normalizeDocuments(docs: Array<{
 }>): ResearchItem[] {
   return docs.map(doc => ({
     id: doc.id,
-    itemType: 'document' as const,
+    itemType: 'Document' as const,
     title: doc.title,
     date: doc.date_published ?? null,
     pillarSlug: doc.document_type ?? null,
@@ -64,7 +62,7 @@ export function normalizeEvents(events: Array<{
 }>): ResearchItem[] {
   return events.map(ev => ({
     id: ev.id,
-    itemType: 'event' as const,
+    itemType: 'Event' as const,
     title: ev.title,
     date: ev.event_date ?? null,
     pillarSlug: ev.pillar ?? null,
@@ -81,7 +79,7 @@ export function normalizeEnemies(enemies: Array<{
 }>): ResearchItem[] {
   return enemies.map(e => ({
     id: e.id,
-    itemType: 'watchlist' as const,
+    itemType: 'Watchlist' as const,
     title: e.name,
     date: e.date_added ?? null,
     pillarSlug: null,
@@ -99,7 +97,7 @@ export function normalizeConvictions(raw: Array<{
 }>): ResearchItem[] {
   return raw.map(r => ({
     id: r.id,
-    itemType: 'conviction' as const,
+    itemType: 'Conviction' as const,
     title: r.name,
     date: r.conviction_date ?? null,
     pillarSlug: null,
@@ -114,7 +112,7 @@ export function normalizeIncidents(raw: Array<{
 }>): ResearchItem[] {
   return raw.map(r => ({
     id: r.id,
-    itemType: 'incident' as const,
+    itemType: 'Incident' as const,
     title: r.title,
     date: r.date ?? null,
     pillarSlug: 'environmental-corporate-accountability',
@@ -128,7 +126,7 @@ export function normalizeDeaths(raw: Array<{
 }>): ResearchItem[] {
   return raw.map(r => ({
     id: r.id,
-    itemType: 'death' as const,
+    itemType: 'Death' as const,
     title: r.name,
     date: r.date ?? null,
     pillarSlug: null,
@@ -143,7 +141,7 @@ export function normalizeTrades(raw: Array<{
 }>): ResearchItem[] {
   return raw.map(r => ({
     id: r.id,
-    itemType: 'trade' as const,
+    itemType: 'Trade' as const,
     title: `${r.member} — ${r.ticker}`,
     date: r.date ?? null,
     pillarSlug: 'financial-systems',
@@ -158,7 +156,7 @@ export function normalizeFamilies(raw: Array<{
 }>): ResearchItem[] {
   return raw.map(r => ({
     id: r.id,
-    itemType: 'family' as const,
+    itemType: 'Family' as const,
     title: r.name,
     date: r.activeYear ?? null,
     pillarSlug: null,

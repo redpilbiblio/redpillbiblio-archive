@@ -7,24 +7,11 @@ export interface ActiveFilterChipsProps {
   onClearPillar: (slug: string) => void;
   onClearType: (type: string) => void;
   onClearVerificationTier: (tier: string) => void;
-  onClearSeverity: (severity: string) => void;
-  onClearDynastyName: (name: string) => void;
   onClearDateRange: () => void;
   onClearTag: (tag: string) => void;
   onClearSort: () => void;
   onClearAll: () => void;
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  document:   'Document',
-  event:      'Event',
-  watchlist:  'Watchlist',
-  conviction: 'Conviction',
-  incident:   'Incident',
-  death:      'Death',
-  trade:      'Trade',
-  family:     'Family',
-};
 
 const TIER_LABELS: Record<string, string> = {
   verified:     'Verified',
@@ -65,8 +52,6 @@ export function ActiveFilterChips({
   onClearPillar,
   onClearType,
   onClearVerificationTier,
-  onClearSeverity,
-  onClearDynastyName,
   onClearDateRange,
   onClearTag,
   onClearSort,
@@ -98,7 +83,7 @@ export function ActiveFilterChips({
     chips.push(
       <Chip
         key={`type-${type}`}
-        label={`Type: ${TYPE_LABELS[type] ?? slugToLabel(type)}`}
+        label={`Type: ${type}`}
         onRemove={() => onClearType(type)}
       />
     );
@@ -110,26 +95,6 @@ export function ActiveFilterChips({
         key={`tier-${tier}`}
         label={`Tier: ${TIER_LABELS[tier] ?? slugToLabel(tier)}`}
         onRemove={() => onClearVerificationTier(tier)}
-      />
-    );
-  }
-
-  for (const severity of filters.severities ?? []) {
-    chips.push(
-      <Chip
-        key={`severity-${severity}`}
-        label={`Severity: ${slugToLabel(severity)}`}
-        onRemove={() => onClearSeverity(severity)}
-      />
-    );
-  }
-
-  for (const name of filters.dynastyNames ?? []) {
-    chips.push(
-      <Chip
-        key={`dynasty-${name}`}
-        label={`Dynasty: ${name}`}
-        onRemove={() => onClearDynastyName(name)}
       />
     );
   }

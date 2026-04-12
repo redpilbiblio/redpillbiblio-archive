@@ -7,7 +7,7 @@ function splitParam(value: string | null): string[] {
   return value.split(',').filter(s => s.length > 0);
 }
 
-const FILTER_PARAMS = ['q', 'pillar', 'cat', 'type', 'tier', 'severity', 'dynasty', 'from', 'to', 'tags', 'sort'];
+const FILTER_PARAMS = ['q', 'pillar', 'cat', 'type', 'tier', 'from', 'to', 'tags', 'sort'];
 
 export function useResearchFilters(): {
   filters: ResearchFilters;
@@ -15,8 +15,6 @@ export function useResearchFilters(): {
   setPillars: (pillars: string[] | undefined) => void;
   setTypes: (types: ResearchItemType[] | undefined) => void;
   setVerificationTiers: (tiers: ResearchFilters['verificationTiers']) => void;
-  setSeverities: (severities: string[] | undefined) => void;
-  setDynastyNames: (names: string[] | undefined) => void;
   setDateRange: (from: string | null, to: string | null) => void;
   setTags: (tags: string[] | undefined) => void;
   setSort: (sort: 'newest' | 'oldest' | undefined) => void;
@@ -28,8 +26,6 @@ export function useResearchFilters(): {
     const pillarSlugs = splitParam(searchParams.get('pillar'));
     const types = splitParam(searchParams.get('type')) as ResearchItemType[];
     const verificationTiers = splitParam(searchParams.get('tier')) as ResearchFilters['verificationTiers'];
-    const severities = splitParam(searchParams.get('severity'));
-    const dynastyNames = splitParam(searchParams.get('dynasty'));
     const tags = splitParam(searchParams.get('tags'));
     const query = searchParams.get('q') ?? undefined;
     const dateFrom = searchParams.get('from') ?? null;
@@ -43,8 +39,6 @@ export function useResearchFilters(): {
       ...(pillarSlugs.length ? { pillarSlugs } : {}),
       ...(types.length ? { types } : {}),
       ...(verificationTiers && verificationTiers.length ? { verificationTiers } : {}),
-      ...(severities.length ? { severities } : {}),
-      ...(dynastyNames.length ? { dynastyNames } : {}),
       ...(dateFrom ? { dateFrom } : {}),
       ...(dateTo ? { dateTo } : {}),
       ...(tags.length ? { tags } : {}),
@@ -78,14 +72,6 @@ export function useResearchFilters(): {
 
   const setVerificationTiers = useCallback((tiers: ResearchFilters['verificationTiers']) => {
     updateParam('tier', tiers && tiers.length ? tiers.join(',') : undefined);
-  }, [updateParam]);
-
-  const setSeverities = useCallback((severities: string[] | undefined) => {
-    updateParam('severity', severities && severities.length ? severities.join(',') : undefined);
-  }, [updateParam]);
-
-  const setDynastyNames = useCallback((names: string[] | undefined) => {
-    updateParam('dynasty', names && names.length ? names.join(',') : undefined);
   }, [updateParam]);
 
   const setDateRange = useCallback((from: string | null, to: string | null) => {
@@ -127,8 +113,6 @@ export function useResearchFilters(): {
     setPillars,
     setTypes,
     setVerificationTiers,
-    setSeverities,
-    setDynastyNames,
     setDateRange,
     setTags,
     setSort,
