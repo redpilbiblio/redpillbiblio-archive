@@ -18,6 +18,8 @@ interface StickyNoteCardProps {
   pin: PinRow;
   onUnpin: (pinId: string) => void;
   readOnly?: boolean;
+  onSelect?: () => void;
+  selected?: boolean;
 }
 
 type ItemType =
@@ -120,7 +122,7 @@ function extractLinks(snapshot: Record<string, unknown>): { url: string; label: 
   return links;
 }
 
-export function StickyNoteCard({ pin, onUnpin, readOnly = false }: StickyNoteCardProps) {
+export function StickyNoteCard({ pin, onUnpin, readOnly = false, onSelect, selected = false }: StickyNoteCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const snap = pin.item_snapshot;
@@ -142,7 +144,11 @@ export function StickyNoteCard({ pin, onUnpin, readOnly = false }: StickyNoteCar
   const tierDot = verificationTier ? TIER_COLOR[verificationTier] ?? 'bg-slate-400' : null;
 
   function handleCardClick() {
-    setExpanded(prev => !prev);
+    if (onSelect) {
+      onSelect();
+    } else {
+      setExpanded(prev => !prev);
+    }
   }
 
   function handleUnpin(e: React.MouseEvent) {
@@ -168,7 +174,9 @@ export function StickyNoteCard({ pin, onUnpin, readOnly = false }: StickyNoteCar
         className="relative rounded-lg overflow-hidden"
         style={{
           backgroundColor: '#fef9c3',
-          boxShadow: expanded
+          boxShadow: selected
+            ? '0 0 0 2.5px #2563eb, 0 8px 24px rgba(0,0,0,0.22)'
+            : expanded
             ? '0 8px 24px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12)'
             : '0 4px 12px rgba(0,0,0,0.16), 0 1px 4px rgba(0,0,0,0.10)',
           transform: expanded ? 'translateY(-2px) scale(1.01)' : 'translateY(0) scale(1)',
