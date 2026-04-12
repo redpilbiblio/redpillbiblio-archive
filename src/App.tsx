@@ -75,7 +75,6 @@ function AppInner() {
           <Route path="/trackers/accidents" element={<AccidentsPage />} />
           <Route path="/trackers/revolving-door" element={<RevolvingDoor />} />
           <Route path="/trackers/convictions" element={<Convictions />} />
-          <Route path="/trackers/accidents-crashes" element={<AccidentsPage />} />
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/transparency" element={<Transparency />} />
           <Route path="/privacy" element={<Privacy />} />
