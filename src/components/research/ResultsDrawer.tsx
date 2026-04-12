@@ -25,6 +25,44 @@ import { useResearchFilters } from '../../hooks/useResearchFilters';
 import { useCorkboardPins } from '../../hooks/useCorkboardPins';
 import { supabase } from '../../lib/supabase';
 import type { ResearchFilters, ResearchItem } from '../../lib/researchItems';
+import { dynastiesIndex } from '../../data/dynasties_index';
+import governmentConvictions from '../../data/government_convictions.json';
+import corporateConvictions from '../../data/corporate_convictions.json';
+import entertainmentConvictions from '../../data/entertainment_convictions.json';
+import lawEnforcementConvictions from '../../data/law_enforcement_convictions.json';
+import militaryConvictions from '../../data/military_intelligence_convictions.json';
+import medicalConvictions from '../../data/medical_pharma_convictions.json';
+import religiousConvictions from '../../data/religious_clergy_convictions.json';
+import congressTrades from '../../data/data_congress_trades.json';
+import suspiciousDeathsCsv from '../../data/suspicious_deaths_new.csv?raw';
+
+function parseCsvDeaths(raw: string): Array<{ name: string; date: string; occupation: string; connection: string }> {
+  const lines = raw.trim().split('\n');
+  const results: Array<{ name: string; date: string; occupation: string; connection: string }> = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const cols: string[] = [];
+    let inQuote = false;
+    let cur = '';
+    for (let j = 0; j < line.length; j++) {
+      const ch = line[j];
+      if (ch === '"') {
+        if (inQuote && line[j + 1] === '"') { cur += '"'; j++; }
+        else { inQuote = !inQuote; }
+      } else if (ch === ',' && !inQuote) {
+        cols.push(cur); cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    cols.push(cur);
+    if (cols.length >= 4) {
+      results.push({ date: cols[0], name: cols[1], occupation: cols[3], connection: cols[4] ?? '' });
+    }
+  }
+  return results;
+}
 
 export interface ResultsDrawerProps {
   open: boolean;
@@ -35,24 +73,26 @@ type ViewMode = 'list' | 'corkboard';
 
 function useResearchResults(filters: ResearchFilters) {
   return useQuery({
-    queryKey: ['research-results', filters],
+    queryKey: ['research-results', filters.sort],
     queryFn: async (): Promise<ResearchItem[]> => {
+      const ascending = filters.sort === 'oldest';
+
       const [docsRes, eventsRes, enemiesRes] = await Promise.all([
         supabase
           .from('documents')
           .select('id, title, date_published, document_type, verification_tier, tags, snippet, pillar_slug')
-          .order('date_published', { ascending: filters.sort === 'oldest' })
-          .limit(200),
+          .order('date_published', { ascending })
+          .limit(300),
         supabase
           .from('events')
           .select('id, title, event_date, pillar, snippet')
-          .order('event_date', { ascending: filters.sort === 'oldest' })
-          .limit(100),
+          .order('event_date', { ascending })
+          .limit(200),
         supabase
           .from('enemies_of_truth')
           .select('id, name, date_added, severity, summary')
-          .order('date_added', { ascending: filters.sort === 'oldest' })
-          .limit(100),
+          .order('date_added', { ascending })
+          .limit(200),
       ]);
 
       const items: ResearchItem[] = [];
@@ -93,9 +133,72 @@ function useResearchResults(filters: ResearchFilters) {
         });
       }
 
-      return items;
+      const allConvictions = [
+        ...governmentConvictions,
+        ...corporateConvictions,
+        ...entertainmentConvictions,
+        ...lawEnforcementConvictions,
+        ...militaryConvictions,
+        ...medicalConvictions,
+        ...religiousConvictions,
+      ] as Array<{ name: string; charges?: string; conviction_date?: string; status?: string; role_title?: string }>;
+
+      allConvictions.forEach((c, idx) => {
+        items.push({
+          id: `conviction-${idx}`,
+          itemType: 'conviction',
+          title: c.name,
+          date: c.conviction_date ?? null,
+          pillarSlug: null,
+          snippet: c.charges ?? c.status ?? null,
+        });
+      });
+
+      const deaths = parseCsvDeaths(suspiciousDeathsCsv);
+      deaths.forEach((d, idx) => {
+        items.push({
+          id: `death-${idx}`,
+          itemType: 'death',
+          title: d.name,
+          date: d.date || null,
+          pillarSlug: null,
+          snippet: d.occupation ? `${d.occupation}${d.connection ? ` — ${d.connection}` : ''}` : d.connection || null,
+        });
+      });
+
+      (congressTrades as Array<{ Date: string; Member: string; Ticker: string; Company: string; Type: string; Amount: string }>)
+        .forEach((t, idx) => {
+          items.push({
+            id: `trade-${idx}`,
+            itemType: 'trade',
+            title: `${t.Member} — ${t.Ticker}`,
+            date: t.Date || null,
+            pillarSlug: 'financial-systems',
+            snippet: `${t.Type} · ${t.Company} · ${t.Amount}`,
+          });
+        });
+
+      dynastiesIndex.forEach(dynasty => {
+        items.push({
+          id: `dynasty-${dynasty.id}`,
+          itemType: 'family',
+          title: dynasty.title,
+          date: null,
+          pillarSlug: null,
+          dynastyName: dynasty.id,
+          snippet: dynasty.tagline,
+        });
+      });
+
+      const sorted = items.sort((a, b) => {
+        const da = a.date ?? '';
+        const db = b.date ?? '';
+        return ascending ? da.localeCompare(db) : db.localeCompare(da);
+      });
+
+      return sorted;
     },
-    staleTime: 60_000,
+    staleTime: 120_000,
   });
 }
 
