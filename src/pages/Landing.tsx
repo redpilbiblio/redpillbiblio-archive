@@ -458,26 +458,6 @@ export function Landing() {
                     </Link>
                   ))}
                 </div>
-
-                <div className="mt-4 p-4 bg-[#0f0f0f] border border-[#181818] rounded">
-                  <div className="font-mono text-[11px] text-[#2e2e2e] uppercase tracking-widest mb-2.5">Also explore</div>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { label: 'Watchlist', to: '/watchlist' },
-                      { label: 'Timeline', to: '/timeline' },
-                      { label: 'Family Trees', to: '/families' },
-                      { label: 'Trackers', to: '/trackers' },
-                    ].map((l) => (
-                      <Link
-                        key={l.label}
-                        to={l.to}
-                        className="font-mono text-xs text-[#4a4a4a] hover:text-[#00ff41]/60 border border-[#1c1c1c] hover:border-[#00ff41]/18 rounded px-2.5 py-1 transition-all focus:outline-none focus:ring-1 focus:ring-[#00ff41]/25"
-                      >
-                        {l.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
