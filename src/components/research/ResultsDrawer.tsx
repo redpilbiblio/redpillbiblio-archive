@@ -218,7 +218,11 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
     out = out.filter(i => filters.types!.includes(i.itemType));
   }
   if (filters.pillarSlugs?.length) {
-    out = out.filter(i => i.pillarSlug && filters.pillarSlugs!.includes(i.pillarSlug));
+    const selected = filters.pillarSlugs;
+    out = [
+      ...out.filter(i => i.pillarSlug != null && selected.includes(i.pillarSlug)),
+      ...out.filter(i => i.pillarSlug == null || !selected.includes(i.pillarSlug)),
+    ];
   }
   if (filters.verificationTiers?.length) {
     out = out.filter(i => i.verificationTier && filters.verificationTiers!.includes(i.verificationTier));
