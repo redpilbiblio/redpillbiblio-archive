@@ -22,6 +22,37 @@ interface Transition {
   sources: string[];
 }
 
+function FeaturedCard({ transition }: { transition: Transition }) {
+  return (
+    <div className="p-6 border border-zinc-700 rounded-3xl bg-zinc-900 mb-8 hover:border-red-500/40 transition-colors">
+      <div className="flex justify-between items-start mb-4">
+        <h4 className="text-2xl font-bold text-white">{transition.name}</h4>
+        <span className="px-4 py-1 text-xs font-semibold bg-red-500 text-white rounded-2xl">
+          {transition.direction === 'Gov to Private' ? 'Gov → Private' : transition.direction === 'Private to Gov' ? 'Private → Gov' : transition.direction}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+        <div>
+          <span className="block text-zinc-400 text-xs mb-1">GOVERNMENT ROLE</span>
+          <div className="text-white">{transition.fromPosition} • {transition.fromOrg}</div>
+        </div>
+        <div>
+          <span className="block text-zinc-400 text-xs mb-1">INDUSTRY ROLE</span>
+          <div className="text-white">{transition.toPosition} • {transition.toOrg}</div>
+        </div>
+      </div>
+      <p className="mt-6 text-zinc-300 text-base leading-relaxed">
+        {transition.conflictArea}
+      </p>
+      {transition.salary && <div className="mt-3 text-yellow-400/80 text-sm">{transition.salary}</div>}
+      <div className="mt-6 flex items-center justify-between text-xs">
+        <span className="px-3 py-1 bg-zinc-800 text-zinc-400 rounded-2xl">{transition.date}</span>
+        <a href="#transitions" className="text-red-400 hover:text-red-300 flex items-center gap-1">View Full Database →</a>
+      </div>
+    </div>
+  );
+}
+
 export function RevolvingDoorContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<keyof Transition>('date');
@@ -927,6 +958,8 @@ export function RevolvingDoorContent() {
     revolving: transitions.filter((t) => t.direction === 'Revolving').length,
   };
 
+  const billyTauzin = transitions.find(t => t.name === 'Billy Tauzin');
+
   return (
     <div className="pt-4">
       <div className="mb-8">
@@ -934,6 +967,15 @@ export function RevolvingDoorContent() {
           Mapping the movement between government positions and private sector jobs. Tracking regulatory capture and conflicts of interest.
         </p>
       </div>
+
+      {billyTauzin && (
+        <div className="mb-12">
+          <h2 className="text-lg font-mono text-red-400 mb-4">Spotlight</h2>
+          <FeaturedCard transition={billyTauzin} />
+        </div>
+      )}
+
+      <div id="transitions" className="scroll-mt-8"></div>
 
       <div className="mb-6 grid grid-cols-3 gap-4">
           <div className="bg-[#0a0a0a] border border-green-500/30 rounded-lg p-4 text-center">
