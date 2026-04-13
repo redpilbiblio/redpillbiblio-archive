@@ -104,7 +104,9 @@ export function PillarOverview() {
       const docPillar = normalizePillarName(doc.metadata?.pillar || '');
       return docPillar === pillar.canonicalName;
     });
-    return matching.slice(0, 5);
+    const featured = matching.filter(doc => doc.metadata?.featured === true);
+    const nonFeatured = matching.filter(doc => doc.metadata?.featured !== true);
+    return [...featured, ...nonFeatured].slice(0, 5);
   }, [verifiedDocs, pillar]);
 
   if (!pillar) {
