@@ -600,6 +600,7 @@ export function ClintonDynasty() {
       <Navigation />
       <main
         id="main-content"
+        tabIndex={-1}
         style={{
           minHeight: '100vh',
           background: '#0c0b09',

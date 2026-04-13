@@ -81,7 +81,7 @@ export function Contact() {
         url="https://redpillbiblio.wtf/contact"
       />
       <Navigation />
-      <main id="main-content" className="pt-24 pb-24 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-[#e5e5e5] mb-4 flex items-center justify-center gap-3">

@@ -271,7 +271,7 @@ export function BushDynasty() {
         url="https://redpillbiblio.wtf/families/bush"
       />
       <Navigation />
-      <main id="main-content" style={{ minHeight: '100vh', background: '#0c0b09', paddingBottom: '4rem' }}>
+      <main id="main-content" tabIndex={-1} style={{ minHeight: '100vh', background: '#0c0b09', paddingBottom: '4rem' }}>
 
         <div style={{
           background: '#111009',

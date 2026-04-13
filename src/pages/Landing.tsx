@@ -212,7 +212,7 @@ export function Landing() {
 
       <Navigation />
 
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         {/* HERO */}
         <section className="min-h-[78vh] flex flex-col items-center justify-center px-6 py-20 bg-[#0b0b0b]">
           <div className="w-full max-w-3xl mx-auto text-center">

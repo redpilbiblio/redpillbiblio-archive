@@ -178,7 +178,7 @@ export function Archive() {
       <Navigation />
       <PageHeader title="Evidence Archive" subtitle="Comprehensive primary-source bibliography of government, court, and corporate documentation" />
 
-      <main className="min-h-screen bg-black text-gray-100">
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-black text-gray-100">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Stats Section */}
           <div className="mb-8 p-4 border border-gray-800 rounded-lg bg-gray-950">

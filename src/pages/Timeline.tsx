@@ -191,7 +191,7 @@ export function Timeline() {
         />
       </div>
 
-      <main id="main-content" className={`pt-24 pb-8 px-4 sm:px-6 lg:px-8 flex-1 flex flex-col transition-all duration-300 ${isRecentCollapsed ? '' : 'md:pr-56'}`}>
+      <main id="main-content" tabIndex={-1} className={`pt-24 pb-8 px-4 sm:px-6 lg:px-8 flex-1 flex flex-col transition-all duration-300 ${isRecentCollapsed ? '' : 'md:pr-56'}`}>
         <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
           <div className="mb-8 border-b border-[#00ff41]/30 pb-4">
             <div className="flex items-center gap-3 mb-3">

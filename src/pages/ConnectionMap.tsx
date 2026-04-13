@@ -428,7 +428,7 @@ export default function ConnectionMap() {
       />
       <Navigation />
 
-      <main id="main-content" className="max-w-7xl mx-auto px-4 pt-24 pb-24">
+      <main id="main-content" tabIndex={-1} className="max-w-7xl mx-auto px-4 pt-24 pb-24">
         <div className="mb-8 text-center border-b border-[#00ff41]/30 pb-4">
           <h1 className="text-[1.75rem] font-bold mb-3 text-[#00ff41] font-mono">
             &gt; CONNECTION_MAP.net

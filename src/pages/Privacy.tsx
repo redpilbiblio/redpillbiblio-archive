@@ -16,7 +16,7 @@ export function Privacy() {
 
       <Navigation />
 
-      <main id="main-content" className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-4xl relative z-10">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-4xl relative z-10">
         <PageHeader
           title="&gt; PRIVACY_POLICY.md"
           description="What we collect, what we don't, and why you can trust us with neither"

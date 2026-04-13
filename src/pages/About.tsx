@@ -62,7 +62,7 @@ export function About() {
 
       <Navigation />
 
-      <main id="main-content" className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-5xl relative z-10">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-5xl relative z-10">
         <PageHeader
           title="&gt; ABOUT.md"
           description="What this archive is, how it works, and what you'll find inside"

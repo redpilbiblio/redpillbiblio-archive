@@ -79,7 +79,7 @@ export function Submit() {
       />
       <Navigation />
 
-      <main id="main-content" className="pt-24 pb-32 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="pt-24 pb-32 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-10 text-center">
             <h1 className="text-3xl sm:text-4xl font-bold text-[#e5e5e5] mb-3 flex items-center justify-center gap-3">

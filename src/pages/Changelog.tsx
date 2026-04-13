@@ -129,7 +129,7 @@ export function Changelog() {
 
       <Navigation />
 
-      <main id="main-content" className="container mx-auto px-4 md:px-6 py-8 pt-20 pb-24 max-w-5xl">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 md:px-6 py-8 pt-20 pb-24 max-w-5xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <History className="w-7 h-7 text-green-400" />

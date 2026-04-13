@@ -58,6 +58,7 @@ export default function FamiliesLanding() {
 
       <main
         id="main-content"
+        tabIndex={-1}
         style={{ flex: 1, paddingTop: '7.5rem', paddingBottom: '4rem' }}
       >
         {/* Page Header */}

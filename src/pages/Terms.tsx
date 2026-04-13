@@ -15,7 +15,7 @@ export function Terms() {
 
       <Navigation />
 
-      <main id="main-content" className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-4xl relative z-10">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-6 py-8 pt-20 pb-24 max-w-4xl relative z-10">
         <PageHeader
           title="&gt; TERMS_OF_SERVICE.md"
           description="The rules of engagement for using this research archive"

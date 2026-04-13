@@ -540,7 +540,7 @@ export default function CongressTrades() {
         url={`${window.location.origin}/congress-trades`}
       />
       <Navigation />
-      <main id="main-content" className="container mx-auto px-4 py-8 pt-24 pb-24 max-w-[1800px] overflow-x-hidden">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-8 pt-24 pb-24 max-w-[1800px] overflow-x-hidden">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <TrendingUp className="w-8 h-8 text-[#00ff41]" />

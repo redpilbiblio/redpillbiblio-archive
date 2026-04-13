@@ -848,7 +848,7 @@ export default function AccidentsPage() {
         url={`${window.location.origin}/trackers/accidents`}
       />
       <Navigation />
-      <main id="main-content" className="container mx-auto px-4 py-8 pt-24 pb-24 max-w-[1600px] overflow-x-hidden">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-8 pt-24 pb-24 max-w-[1600px] overflow-x-hidden">
         <Link
           to="/trackers"
           className="inline-flex items-center gap-2 text-[#00ff41] hover:text-[#00ff41]/80 font-mono text-sm mb-6 transition-colors"

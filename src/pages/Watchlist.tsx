@@ -519,6 +519,7 @@ export function Watchlist() {
       <Navigation />
       <main
         id="main-content"
+        tabIndex={-1}
         className="min-h-screen bg-[#0a0a0a] pt-20 pb-16"
         style={{ opacity: showLoading ? 0 : 1, transition: 'opacity 0.5s ease-in-out' }}
       >

@@ -483,7 +483,7 @@ export function Convictions() {
       />
       <Navigation />
 
-      <main id="main-content" className="container mx-auto px-4 py-8 pt-20 pb-24 max-w-[1600px]">
+      <main id="main-content" tabIndex={-1} className="container mx-auto px-4 py-8 pt-20 pb-24 max-w-[1600px]">
         <PageHeader
           title="&gt; CONVICTION_RECORDS.db"
           description="Searchable database of documented criminal convictions and charges across entertainment, corporate, government, law enforcement, military & intelligence, medical & pharma, and religious sectors"
