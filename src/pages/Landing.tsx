@@ -4,6 +4,7 @@ import { Search, ArrowRight, ExternalLink, Shuffle, BookOpen, Tag, FlaskConical 
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { SEOHead } from '@/components/SEOHead';
+import { LiveTransparencyHub } from '@/components/LiveTransparencyHub';
 import { supabase } from '@/lib/supabase';
 import { PILLAR_CONFIGS } from '@/lib/pillarUtils';
 import { useSiteStats, formatLastUpdated } from '@/hooks/useSiteStats';
@@ -427,6 +428,9 @@ export function Landing() {
             </div>
           </div>
         </section>
+
+        {/* LIVE TRANSPARENCY HUB */}
+        <LiveTransparencyHub />
 
         {/* LIVE STATS */}
         <section className="border-y border-[#00ff41]/10 bg-[#080808] py-10">
