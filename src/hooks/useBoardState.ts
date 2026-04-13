@@ -34,6 +34,9 @@ export function getConnectionHex(color: string): string {
   return CONNECTION_COLORS.find(c => c.value === color)?.hex ?? '#ef4444';
 }
 
+export const MIN_ZOOM = 0.4;
+export const MAX_ZOOM = 2;
+
 const NOTE_W = 220;
 const NOTE_H = 140;
 const GRID_COL_GAP = 48;
@@ -78,6 +81,20 @@ function saveConnections(sessionId: string, connections: BoardConnection[]) {
   } catch { /* ignore */ }
 }
 
+function loadPinNotes(sessionId: string): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(`researchBoardPinNotes:${sessionId}`);
+    if (raw) return JSON.parse(raw) as Record<string, string>;
+  } catch { /* ignore */ }
+  return {};
+}
+
+function savePinNotes(sessionId: string, notes: Record<string, string>) {
+  try {
+    localStorage.setItem(`researchBoardPinNotes:${sessionId}`, JSON.stringify(notes));
+  } catch { /* ignore */ }
+}
+
 export interface BoardStateHandle {
   positions: Record<string, NotePosition>;
   getPosition: (pinId: string, index: number) => NotePosition;
@@ -109,6 +126,12 @@ export interface BoardStateHandle {
   rubberBandStart: (fromId: string, clientX: number, clientY: number, boardRef: React.RefObject<HTMLDivElement | null>) => void;
   rubberBandMove: (clientX: number, clientY: number, boardRef: React.RefObject<HTMLDivElement | null>) => void;
   rubberBandEnd: (toId: string | null) => void;
+
+  zoom: number;
+  setZoom: (z: number) => void;
+
+  pinNotes: Record<string, string>;
+  updatePinNote: (id: string, note: string) => void;
 }
 
 export function useBoardState(): BoardStateHandle {
@@ -119,12 +142,18 @@ export function useBoardState(): BoardStateHandle {
   const [currentColor, setCurrentColor] = useState<ConnectionColor>('red');
   const [connectingFrom, setConnectingFrom] = useState<string | null>(null);
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
+  const [zoom, setZoomRaw] = useState<number>(1);
+  const [pinNotes, setPinNotes] = useState<Record<string, string>>(() => loadPinNotes(sessionId));
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [rubberBand, setRubberBand] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
 
   const dragOffsetRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
   const rubberFromRef = useRef<string | null>(null);
+
+  const setZoom = useCallback((z: number) => {
+    setZoomRaw(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z)));
+  }, []);
 
   const getPosition = useCallback((pinId: string, index: number): NotePosition => {
     return positions[pinId] ?? defaultPosition(index);
@@ -250,6 +279,14 @@ export function useBoardState(): BoardStateHandle {
     } catch { /* ignore */ }
   }, [sessionId]);
 
+  const updatePinNote = useCallback((id: string, note: string) => {
+    setPinNotes(prev => {
+      const next = { ...prev, [id]: note.slice(0, 100) };
+      savePinNotes(sessionId, next);
+      return next;
+    });
+  }, [sessionId]);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
@@ -288,5 +325,9 @@ export function useBoardState(): BoardStateHandle {
     rubberBandStart,
     rubberBandMove,
     rubberBandEnd,
+    zoom,
+    setZoom,
+    pinNotes,
+    updatePinNote,
   };
 }

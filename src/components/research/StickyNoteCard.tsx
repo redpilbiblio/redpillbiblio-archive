@@ -137,23 +137,24 @@ export function StickyNoteCard({
   const pinColor = (pillarSlug && PILLAR_PIN_COLOR[pillarSlug]) ?? '#ef4444';
   const tierDot = verificationTier ? TIER_COLOR[verificationTier] ?? 'bg-slate-400' : null;
 
+  const userNote = board.pinNotes[pin.id] ?? '';
+
   const isDragging = board.draggingId === pin.id;
   const isConnecting = board.connectingFrom === pin.id;
 
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
-  const dragMoved = useRef(false);
 
   function handleHeaderMouseDown(e: React.MouseEvent) {
     if (e.button !== 0) return;
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a')) return;
     e.preventDefault();
-    dragMoved.current = false;
     const el = boardRef.current;
     const rect = el?.getBoundingClientRect();
-    const boardX = rect && el ? e.clientX - rect.left + el.scrollLeft : e.clientX;
-    const boardY = rect && el ? e.clientY - rect.top + el.scrollTop : e.clientY;
+    const zoom = board.zoom;
+    const boardX = rect && el ? (e.clientX - rect.left + el.scrollLeft) / zoom : e.clientX;
+    const boardY = rect && el ? (e.clientY - rect.top + el.scrollTop) / zoom : e.clientY;
     board.dragStart(pin.id, boardX, boardY, position.x, position.y);
   }
 
@@ -167,6 +168,7 @@ export function StickyNoteCard({
   }
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
     didLongPress.current = false;
     const touch = e.touches[0];
     longPressTimer.current = setTimeout(() => {
@@ -187,7 +189,7 @@ export function StickyNoteCard({
 
   function handleCardClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) return;
+    if (target.closest('button') || target.closest('a') || target.closest('textarea')) return;
     if (board.connectingFrom && board.connectingFrom !== pin.id) {
       board.rubberBandEnd(pin.id);
       return;
@@ -221,7 +223,7 @@ export function StickyNoteCard({
         width: 220,
         zIndex: isDragging ? 100 : selected ? 10 : 1,
         pointerEvents: 'auto',
-        transition: isDragging ? 'none' : 'none',
+        transition: 'none',
       }}
       onClick={handleCardClick}
       onContextMenu={handleContextMenu}
@@ -292,9 +294,9 @@ export function StickyNoteCard({
           </div>
         </div>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-2">
           <p
-            className="text-xs font-bold text-yellow-950 leading-tight mb-1"
+            className="text-xs font-bold text-yellow-950 leading-tight mb-0.5"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,
@@ -309,13 +311,27 @@ export function StickyNoteCard({
             <p className="text-[10px] text-yellow-800/60 mb-1.5">{formatDate(snap.date)}</p>
           )}
 
+          {!readOnly && (
+            <textarea
+              value={userNote}
+              onChange={e => board.updatePinNote(pin.id, e.target.value)}
+              maxLength={100}
+              rows={3}
+              placeholder="Add a note..."
+              className="w-full resize-none bg-yellow-50/60 text-[11px] text-yellow-900 placeholder-yellow-700/40 leading-snug outline-none rounded px-1.5 py-1 border border-yellow-200/60 focus:border-yellow-400/80 focus:bg-yellow-50 transition-colors"
+              style={{ fontFamily: 'inherit' }}
+              onMouseDown={e => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
+            />
+          )}
+
           {primaryLink && (
             <a
               href={primaryLink.url}
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline truncate"
+              className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline truncate mt-1"
             >
               <ExternalLink size={9} className="flex-shrink-0" />
               <span className="truncate">{primaryLink.label}</span>

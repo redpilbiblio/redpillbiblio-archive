@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback } from 'react';
-import { PanelRightOpen, PanelRightClose, ExternalLink, Pin, CircleHelp as HelpCircle, Trash2, Scissors, Square as XSquare } from 'lucide-react';
+import { PanelRightOpen, PanelRightClose, ExternalLink, Pin, CircleHelp as HelpCircle, Trash2, Scissors, Square as XSquare, ZoomIn, ZoomOut } from 'lucide-react';
 import type { CorkboardPinsHandle } from '../../hooks/useCorkboardPins';
 import { StickyNoteCard } from './StickyNoteCard';
 import { ScrollArea } from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
-import { useBoardState, CONNECTION_COLORS, getConnectionHex } from '../../hooks/useBoardState';
+import { useBoardState, CONNECTION_COLORS, getConnectionHex, MIN_ZOOM, MAX_ZOOM } from '../../hooks/useBoardState';
 import type { BoardConnection } from '../../hooks/useBoardState';
 import { BoardLegendModal, useLegendModal } from './BoardLegendModal';
 
@@ -68,6 +68,12 @@ function SkeletonGrid() {
 
 function getNoteCenterX(x: number): number { return x + NOTE_W / 2; }
 function getNoteCenterY(y: number): number { return y + NOTE_H / 2; }
+
+function getTouchDistance(touches: React.TouchList): number {
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
 
 interface ConnectionLineProps {
   conn: BoardConnection;
@@ -193,6 +199,8 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const { open: legendOpen, openLegend, closeLegend } = useLegendModal();
 
+  const pinchRef = useRef<{ initialDistance: number; initialZoom: number } | null>(null);
+
   const selectedPin = pins.find(p => p.id === selectedPinId) ?? null;
   const snap = selectedPin?.item_snapshot ?? null;
   const title      = snap && typeof snap.title       === 'string' ? snap.title       : null;
@@ -204,12 +212,23 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
   const date       = snap ? snap.date : null;
   const links      = snap ? extractLinks(snap) : [];
 
+  const handleBoardWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      board.setZoom(board.zoom * factor);
+    }
+  }, [board]);
+
   const handleBoardMouseMove = useCallback((e: React.MouseEvent) => {
     const el = boardRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     if (board.draggingId) {
-      board.dragMove(e.clientX - rect.left + el.scrollLeft, e.clientY - rect.top + el.scrollTop);
+      board.dragMove(
+        (e.clientX - rect.left + el.scrollLeft) / board.zoom,
+        (e.clientY - rect.top + el.scrollTop) / board.zoom,
+      );
     }
     if (board.rubberBand) {
       board.rubberBandMove(e.clientX, e.clientY, boardRef);
@@ -227,14 +246,34 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
     }
   }, [board]);
 
+  const handleBoardTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      pinchRef.current = {
+        initialDistance: getTouchDistance(e.touches),
+        initialZoom: board.zoom,
+      };
+    }
+  }, [board.zoom]);
+
   const handleBoardTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current) {
+      e.preventDefault();
+      const currentDistance = getTouchDistance(e.touches);
+      const scaleFactor = currentDistance / pinchRef.current.initialDistance;
+      board.setZoom(pinchRef.current.initialZoom * scaleFactor);
+      return;
+    }
+
     if (!board.rubberBand && !board.draggingId) return;
     const touch = e.touches[0];
     const el = boardRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
     if (board.draggingId) {
-      board.dragMove(touch.clientX - rect.left + el.scrollLeft, touch.clientY - rect.top + el.scrollTop);
+      board.dragMove(
+        (touch.clientX - rect.left + el.scrollLeft) / board.zoom,
+        (touch.clientY - rect.top + el.scrollTop) / board.zoom,
+      );
     }
     if (board.rubberBand) {
       board.rubberBandMove(touch.clientX, touch.clientY, boardRef);
@@ -242,6 +281,9 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
   }, [board]);
 
   const handleBoardTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      pinchRef.current = null;
+    }
     if (board.draggingId) {
       board.dragEnd();
     }
@@ -281,6 +323,8 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
         };
       })()
     : null;
+
+  const zoomPct = Math.round(board.zoom * 100);
 
   return (
     <>
@@ -354,6 +398,28 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
               </span>
             )}
 
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => board.setZoom(board.zoom * 0.9)}
+                disabled={board.zoom <= MIN_ZOOM}
+                className="p-1 rounded text-amber-900/50 hover:text-amber-900 hover:bg-amber-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                title="Zoom out"
+              >
+                <ZoomOut size={13} />
+              </button>
+              <span className="text-[10px] font-mono text-amber-900/60 w-9 text-center select-none">
+                {zoomPct}%
+              </span>
+              <button
+                onClick={() => board.setZoom(board.zoom * 1.1)}
+                disabled={board.zoom >= MAX_ZOOM}
+                className="p-1 rounded text-amber-900/50 hover:text-amber-900 hover:bg-amber-200/50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                title="Zoom in"
+              >
+                <ZoomIn size={13} />
+              </button>
+            </div>
+
             <button
               onClick={openLegend}
               className="p-1.5 rounded-lg text-amber-900/50 hover:text-amber-900 hover:bg-amber-200/50 transition-colors"
@@ -374,9 +440,11 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
               cursor: board.draggingId ? 'grabbing' : board.connectingFrom ? 'crosshair' : 'default',
               userSelect: 'none',
             }}
+            onWheel={handleBoardWheel}
             onMouseMove={handleBoardMouseMove}
             onMouseUp={handleBoardMouseUp}
             onMouseLeave={() => { if (board.draggingId) board.dragEnd(); }}
+            onTouchStart={handleBoardTouchStart}
             onTouchMove={handleBoardTouchMove}
             onTouchEnd={handleBoardTouchEnd}
             onClick={handleBoardClick}
@@ -396,7 +464,15 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
                 <p className="text-xs">Pin items from the research results to see them here.</p>
               </div>
             ) : (
-              <div className="relative" style={{ minWidth: 900, minHeight: 620 }}>
+              <div
+                style={{
+                  transform: `scale(${board.zoom})`,
+                  transformOrigin: '0 0',
+                  minWidth: 900,
+                  minHeight: 620,
+                  position: 'relative',
+                }}
+              >
                 <svg
                   className="absolute inset-0 pointer-events-none"
                   style={{ width: '100%', height: '100%', overflow: 'visible' }}
@@ -428,10 +504,10 @@ export function CorkboardPanel({ corkboard }: CorkboardPanelProps) {
 
                   {board.rubberBand && (
                     <line
-                      x1={board.rubberBand.x1}
-                      y1={board.rubberBand.y1}
-                      x2={board.rubberBand.x2}
-                      y2={board.rubberBand.y2}
+                      x1={board.rubberBand.x1 / board.zoom}
+                      y1={board.rubberBand.y1 / board.zoom}
+                      x2={board.rubberBand.x2 / board.zoom}
+                      y2={board.rubberBand.y2 / board.zoom}
                       stroke={getConnectionHex(board.currentColor)}
                       strokeWidth={2}
                       strokeDasharray="6 4"
