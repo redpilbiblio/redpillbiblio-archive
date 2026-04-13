@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { SkipLink } from './components/SkipLink';
+import { RouteAnnouncer } from './components/RouteAnnouncer';
 import { BackToTop } from './components/BackToTop';
 
 const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })));
@@ -105,6 +106,7 @@ function AppInner() {
 function App() {
   return (
     <Router>
+      <RouteAnnouncer />
       <AppInner />
     </Router>
   );
