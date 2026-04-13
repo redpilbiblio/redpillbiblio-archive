@@ -37,7 +37,10 @@ export function useDocuments() {
         .select('*')
         .order('date_published', { ascending: false });
       if (error) throw error;
-      return data as Document[];
+      return (data || []).map(doc => ({
+        ...doc,
+        topic_tags: (doc.metadata?.tags as string[]) || []
+      })) as Document[];
     },
   });
 }
@@ -53,7 +56,10 @@ export function useDocumentBySlug(slug: string | undefined) {
         .eq('slug', slug)
         .maybeSingle();
       if (error) throw error;
-      return data as Document | null;
+      return data ? ({
+        ...data,
+        topic_tags: (data.metadata?.tags as string[]) || []
+      } as Document) : null;
     },
     enabled: !!slug,
   });
@@ -70,7 +76,10 @@ export function useDocumentById(id: string | undefined) {
         .eq('id', id)
         .maybeSingle();
       if (error) throw error;
-      return data as Document | null;
+      return data ? ({
+        ...data,
+        topic_tags: (data.metadata?.tags as string[]) || []
+      } as Document) : null;
     },
     enabled: !!id,
   });
@@ -192,7 +201,10 @@ export function useVerifiedDocuments(limit = 200) {
         .order('date_published', { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return data as Document[];
+      return (data || []).map(doc => ({
+        ...doc,
+        topic_tags: (doc.metadata?.tags as string[]) || []
+      })) as Document[];
     },
   });
 }
