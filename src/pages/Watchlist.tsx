@@ -11,8 +11,28 @@ import { SocialHandlePills } from '@/components/SocialHandlePill';
 import { SOCIAL_HANDLES } from '@/data/socialHandles';
 
 type SortKey = 'name' | 'severity';
+type StatusFilter = 'incarcerated' | 'trial';
 
 const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 3, HIGH: 2, MEDIUM: 1, LOW: 0, DECEASED: 0 };
+
+function isCurrentlyIncarcerated(tags: string[]): boolean {
+  return tags.some(t => t.toUpperCase().includes('INCARCER'));
+}
+
+function hasTrialPending(tags: string[]): boolean {
+  return tags.some(t => {
+    const u = t.toUpperCase();
+    return (
+      u.includes('TRIAL ONGOING') ||
+      u.includes('IN ABSENTIA TRIAL') ||
+      u.includes('INDICTED') ||
+      u.includes('CHARGES PENDING') ||
+      u.includes('LITIGATION PENDING') ||
+      u.includes('ICC ARREST WARRANT') ||
+      u.includes('ICJ GENOCIDE CASE ACTIVE')
+    );
+  });
+}
 
 function SeverityBar({ severity }: { severity: string }) {
   const isDeceased = severity === 'DECEASED';
@@ -422,6 +442,7 @@ export function Watchlist() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('severity');
   const [severityFilter, setSeverityFilter] = useState<string>('ALL');
+  const [statusFilters, setStatusFilters] = useState<Set<StatusFilter>>(new Set());
   const [visibleCount, setVisibleCount] = useState(20);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -434,7 +455,16 @@ export function Watchlist() {
 
   useEffect(() => {
     setVisibleCount(20);
-  }, [searchTerm, sortKey, severityFilter]);
+  }, [searchTerm, sortKey, severityFilter, statusFilters]);
+
+  const toggleStatusFilter = useCallback((f: StatusFilter) => {
+    setStatusFilters(prev => {
+      const next = new Set(prev);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      return next;
+    });
+  }, []);
 
   const handleLoadMore = useCallback(() => {
     setVisibleCount(prev => prev + 20);
@@ -459,6 +489,14 @@ export function Watchlist() {
 
     if (severityFilter !== 'ALL') {
       result = result.filter(e => e.severity === severityFilter);
+    }
+
+    if (statusFilters.has('incarcerated')) {
+      result = result.filter(e => isCurrentlyIncarcerated(e.status_tags));
+    }
+
+    if (statusFilters.has('trial')) {
+      result = result.filter(e => hasTrialPending(e.status_tags));
     }
 
     if (searchTerm) {
@@ -487,7 +525,7 @@ export function Watchlist() {
     });
 
     return result;
-  }, [entries, searchTerm, sortKey, severityFilter]);
+  }, [entries, searchTerm, sortKey, severityFilter, statusFilters]);
 
   return (
     <>
@@ -583,6 +621,51 @@ export function Watchlist() {
                     />
                   )}
                   {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {([
+              {
+                key: 'incarcerated' as StatusFilter,
+                label: 'Currently Incarcerated',
+                color: '#ff4444',
+                activeBg: 'rgba(255,68,68,0.08)',
+              },
+              {
+                key: 'trial' as StatusFilter,
+                label: 'Trial / Indicted',
+                color: '#ffbf00',
+                activeBg: 'rgba(255,191,0,0.08)',
+              },
+            ]).map(({ key, label, color, activeBg }) => {
+              const isActive = statusFilters.has(key);
+              return (
+                <button
+                  key={key}
+                  onClick={() => toggleStatusFilter(key)}
+                  className="font-mono text-xs px-3 py-1.5 rounded-sm border transition-all flex items-center gap-1.5"
+                  style={{
+                    borderColor: isActive ? color : '#333',
+                    color: isActive ? color : '#666',
+                    backgroundColor: isActive ? activeBg : '#111',
+                  }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: isActive ? color : '#444' }}
+                  />
+                  {label}
+                  {isActive && (
+                    <span
+                      className="ml-1 font-mono text-[10px] px-1 rounded"
+                      style={{ backgroundColor: `${color}22`, color }}
+                    >
+                      ×
+                    </span>
+                  )}
                 </button>
               );
             })}
