@@ -6,6 +6,7 @@ import { Footer } from '@/components/Footer';
 import { SEOHead } from '@/components/SEOHead';
 import { supabase } from '@/lib/supabase';
 import { PILLAR_CONFIGS } from '@/lib/pillarUtils';
+import { useSiteStats, formatLastUpdated } from '@/hooks/useSiteStats';
 
 const PILLAR_DESCRIPTIONS: Record<string, string> = {
   'Child Safety & Trafficking': 'Epstein network, institutional abuse, trafficking operations',
@@ -53,40 +54,15 @@ type FeaturedDoc = {
   verification_tier: string;
 };
 
-type Stats = {
-  docs: number;
-  enemies: number;
-  events: number;
-  lastUpload: string | null;
-};
-
 export function Landing() {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [stats, setStats] = useState<Stats>({ docs: 3411, enemies: 84, events: 998, lastUpload: null });
+  const { stats: siteStats, isLoading: statsLoading } = useSiteStats();
   const [pillars, setPillars] = useState<PillarStat[]>([]);
   const [featuredDocs, setFeaturedDocs] = useState<FeaturedDoc[]>([]);
   const [recentDocs, setRecentDocs] = useState<RecentDoc[]>([]);
   const [allDocIds, setAllDocIds] = useState<string[]>([]);
-  const [statsLoaded, setStatsLoaded] = useState(false);
-
-  useEffect(() => {
-    Promise.all([
-      supabase.from('documents').select('id', { count: 'exact', head: true }),
-      supabase.from('enemies_of_truth').select('id', { count: 'exact', head: true }),
-      supabase.from('timeline_events').select('id', { count: 'exact', head: true }),
-      supabase.from('documents').select('created_at').order('created_at', { ascending: false }).limit(1),
-    ]).then(([docs, enemies, events, lastUpload]) => {
-      setStats({
-        docs: docs.count ?? 3411,
-        enemies: enemies.count ?? 84,
-        events: events.count ?? 998,
-        lastUpload: (lastUpload.data?.[0]?.created_at as string | undefined) ?? null,
-      });
-      setStatsLoaded(true);
-    });
-  }, []);
 
   useEffect(() => {
     supabase
@@ -178,29 +154,36 @@ export function Landing() {
     }
   }, [allDocIds, navigate]);
 
-  const docCountDisplay = statsLoaded ? stats.docs.toLocaleString() : '3,411';
-
   const statTiles = [
-    { label: 'Evidence Items', sublabel: 'Documents in archive', display: stats.docs.toLocaleString(), small: false, to: '/evidence-list' },
-    { label: 'Officials & Executives Tracked', sublabel: 'On the watchlist', display: stats.enemies.toLocaleString(), small: false, to: '/watchlist' },
-    { label: 'Events Documented', sublabel: 'In the timeline', display: stats.events.toLocaleString(), small: false, to: '/timeline' },
+    {
+      label: 'Evidence Items',
+      sublabel: 'Documents in archive',
+      display: statsLoading ? '…' : (siteStats?.total_documents ?? 0).toLocaleString(),
+      small: false,
+      to: '/evidence-list',
+    },
+    {
+      label: 'Officials & Executives Tracked',
+      sublabel: 'On the watchlist',
+      display: statsLoading ? '…' : (siteStats?.total_watchlist ?? 0).toLocaleString(),
+      small: false,
+      to: '/watchlist',
+    },
+    {
+      label: 'Events Documented',
+      sublabel: 'In the timeline',
+      display: statsLoading ? '…' : (siteStats?.total_events ?? 0).toLocaleString(),
+      small: false,
+      to: '/timeline',
+    },
     {
       label: 'Last Updated',
-      sublabel: 'Most recent upload',
-      display: stats.lastUpload
-        ? new Date(stats.lastUpload).toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          }) + ' UTC'
-        : '—',
+      sublabel: 'Most recent change',
+      display: statsLoading ? '…' : formatLastUpdated(siteStats?.last_updated ?? null),
       small: true,
       to: null,
     },
-    { label: 'Elite Family Trees', sublabel: 'Power dynasties profiled', display: '7', small: false, to: '/families' },
+    { label: 'Elite Family Trees', sublabel: 'Power dynasties profiled', display: '9', small: false, to: '/families' },
     { label: 'Insider Trades', sublabel: 'Financial disclosures', display: (1106).toLocaleString(), small: false, to: '/trackers/insider-trades' },
     { label: 'Crashes & Incidents', sublabel: 'Accident records', display: (389).toLocaleString(), small: false, to: '/trackers/accidents' },
     { label: 'Source Links Archived', sublabel: 'Primary references', display: (2773).toLocaleString(), small: false, to: null },

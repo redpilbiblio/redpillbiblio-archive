@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { useSiteStats, formatLastUpdated } from '@/hooks/useSiteStats';
 
-const STATS = {
-  archiveItems: 644,
-  trackerItems: 1378,
-  timelineEvents: 1222,
-  convictionRecords: 345,
-  watchlistEntries: 88,
+const STATIC_STATS = {
   sourcedLinks: 616,
   primarySourceLinks: 588,
   openPendingItems: 38,
@@ -14,46 +10,41 @@ const STATS = {
   pctValid: 7.6,
   pctPreliminary: 1.7,
   pctOpen: 4.6,
-  lastUpdated: '2026-04-09 03:00 ET',
   donations: '$333',
 };
 
 export function LiveStatsTicker() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const { stats, isLoading } = useSiteStats();
 
   useEffect(() => {
     if (!trackRef.current) return;
+    if (isLoading) return;
 
-    const totalCatalog =
-      STATS.archiveItems +
-      STATS.trackerItems +
-      STATS.timelineEvents +
-      STATS.convictionRecords +
-      STATS.watchlistEntries;
+    const watchlistEntries = stats?.total_watchlist ?? 0;
+    const timelineEvents = stats?.total_events ?? 0;
+    const archiveItems = stats?.total_documents ?? 0;
+    const lastUpdated = formatLastUpdated(stats?.last_updated ?? null);
 
-    const pctGov = STATS.sourcedLinks > 0
-      ? ((STATS.govLinks / STATS.sourcedLinks) * 100).toFixed(1)
+    const pctGov = STATIC_STATS.sourcedLinks > 0
+      ? ((STATIC_STATS.govLinks / STATIC_STATS.sourcedLinks) * 100).toFixed(1)
       : '0.0';
 
     const items = [
-      { label: 'ARCHIVE ITEMS', value: STATS.archiveItems.toLocaleString(), type: 'value' },
-      { label: 'TRACKER ITEMS', value: STATS.trackerItems.toLocaleString(), type: 'value' },
-      { label: 'TIMELINE EVENTS', value: STATS.timelineEvents.toLocaleString(), type: 'value' },
-      { label: 'CONVICTION RECORDS', value: STATS.convictionRecords.toLocaleString(), type: 'value' },
-      { label: 'WATCHLIST ENTRIES', value: STATS.watchlistEntries.toLocaleString(), type: 'value' },
-      { label: 'DYNASTY INDEX', value: '5', type: 'value' },
-      { label: 'TOTAL CATALOG ITEMS', value: totalCatalog.toLocaleString(), type: 'value' },
-      { label: 'SOURCED LINKS', value: STATS.sourcedLinks.toLocaleString(), type: 'value' },
-      { label: 'PRIMARY SOURCE VERIFIED', value: STATS.primarySourceLinks.toLocaleString(), type: 'value' },
-      { label: 'OPEN / PENDING REVIEW', value: STATS.openPendingItems.toLocaleString(), type: 'pending' },
-      { label: '.GOV SOURCE LINKS', value: STATS.govLinks.toLocaleString(), type: 'gov' },
+      { label: 'ARCHIVE ITEMS', value: archiveItems.toLocaleString(), type: 'value' },
+      { label: 'TIMELINE EVENTS', value: timelineEvents.toLocaleString(), type: 'value' },
+      { label: 'WATCHLIST ENTRIES', value: watchlistEntries.toLocaleString(), type: 'value' },
+      { label: 'SOURCED LINKS', value: STATIC_STATS.sourcedLinks.toLocaleString(), type: 'value' },
+      { label: 'PRIMARY SOURCE VERIFIED', value: STATIC_STATS.primarySourceLinks.toLocaleString(), type: 'value' },
+      { label: 'OPEN / PENDING REVIEW', value: STATIC_STATS.openPendingItems.toLocaleString(), type: 'pending' },
+      { label: '.GOV SOURCE LINKS', value: STATIC_STATS.govLinks.toLocaleString(), type: 'gov' },
       { label: '.GOV % OF ALL SOURCES', value: `${pctGov}%`, type: 'pct' },
-      { label: 'PRIMARY SOURCE VERIFIED', value: `${STATS.pctPrimaryVerified.toFixed(1)}%`, type: 'pct' },
-      { label: 'VALID & CONFIRMED', value: `${STATS.pctValid.toFixed(1)}%`, type: 'pct' },
-      { label: 'PRELIMINARY / PENDING', value: `${STATS.pctPreliminary.toFixed(1)}%`, type: 'pending' },
-      { label: 'OPEN / UNDER REVIEW', value: `${STATS.pctOpen.toFixed(1)}%`, type: 'pending' },
-      { label: 'LAST UPDATED', value: STATS.lastUpdated, type: 'value' },
-      { label: 'TOTAL DONATIONS', value: STATS.donations, type: 'donation' },
+      { label: 'PRIMARY SOURCE VERIFIED', value: `${STATIC_STATS.pctPrimaryVerified.toFixed(1)}%`, type: 'pct' },
+      { label: 'VALID & CONFIRMED', value: `${STATIC_STATS.pctValid.toFixed(1)}%`, type: 'pct' },
+      { label: 'PRELIMINARY / PENDING', value: `${STATIC_STATS.pctPreliminary.toFixed(1)}%`, type: 'pending' },
+      { label: 'OPEN / UNDER REVIEW', value: `${STATIC_STATS.pctOpen.toFixed(1)}%`, type: 'pending' },
+      { label: 'LAST UPDATED', value: lastUpdated, type: 'value' },
+      { label: 'TOTAL DONATIONS', value: STATIC_STATS.donations, type: 'donation' },
     ];
 
     const getValueClass = (type: string) => {
@@ -73,7 +64,7 @@ export function LiveStatsTicker() {
       .join(separator);
 
     trackRef.current.innerHTML = inner + separator + inner;
-  }, []);
+  }, [stats, isLoading]);
 
   return (
     <div
