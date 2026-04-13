@@ -4,7 +4,7 @@ import {
   FileSearch, Crosshair, Clock, Activity, Shield,
   Menu, X, ChevronDown, Network, FileText, BookOpen,
   Trees, Scale, Info, Eye, Send, Upload, Share2, Lightbulb,
-  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen, Radio
+  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen, Radio, Archive
 } from 'lucide-react';
 import { GlobalSearch } from './GlobalSearch';
 
@@ -30,8 +30,9 @@ const NAV_GROUPS: NavGroup[] = [
     links: [
       { to: '/research', label: 'Research Board', icon: Network },
       { to: '/evidence-list', label: 'Evidence Archive', icon: FileText },
+      { to: '/global-archives', label: 'Free Global Archives', icon: Archive },
     ],
-    routes: ['/research', '/evidence-list'],
+    routes: ['/research', '/evidence-list', '/global-archives'],
   },
   {
     id: 'history',
