@@ -28,7 +28,42 @@
     <link rel="canonical" href="https://redpillbiblio.wtf/" />
   </head>
   <body>
+    <div id="app-skeleton" style="
+  background:#0a0a0a;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  font-family:'JetBrains Mono', monospace;
+">
+  <div style="color:#00ff41;font-size:1.2rem;letter-spacing:0.1em;">[ LOADING ARCHIVE ]</div>
+  <div style="width:200px;height:2px;background:#1a1a1a;border-radius:2px;overflow:hidden;">
+    <div style="height:100%;width:40%;background:#00ff41;animation:pulse 1.2s ease-in-out infinite;"></div>
+  </div>
+  <style>
+    @keyframes pulse {
+      0%,100%{opacity:0.4;transform:translateX(-100%)}
+      50%{opacity:1;transform:translateX(200%)}
+    }
+  </style>
+</div>
     <div id="root"></div>
+    <script>
+  (function() {
+    var sk = document.getElementById('app-skeleton');
+    if (!sk) return;
+    var observer = new MutationObserver(function() {
+      var root = document.getElementById('root');
+      if (root && root.children.length > 0) {
+        sk.style.display = 'none';
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('root'), { childList: true });
+  })();
+</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
