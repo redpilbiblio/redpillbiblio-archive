@@ -96,8 +96,8 @@ const STATIC_CARDS: TrackerCard[] = [
   {
     id: 'accidents',
     title: 'Accidents & Crashes',
-    entries: 44,
-    lastUpdated: '2024-01-05',
+    entries: 61,
+    lastUpdated: '2026-04-12',
     description: 'Planes, trains, ships — when things go wrong and why. Official causes vs. notable factors.',
     icon: '\u{2708}',
     dbName: 'ACCIDENT_RECORDS.db',
