@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FileSearch, Crosshair, Clock, Activity, Shield,
   Menu, X, ChevronDown, Network, FileText, BookOpen,
   Trees, Scale, Info, Eye, Send, Upload, Share2, Lightbulb,
-  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen, Radio, Archive
+  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen, Radio, Archive, Monitor,
 } from 'lucide-react';
 import { GlobalSearch } from './GlobalSearch';
+import { getMonitors } from '../lib/dockingStation';
 
 interface NavLink {
   to: string;
@@ -251,9 +252,22 @@ function MobileGroup({ group, isExpanded, onToggle, onClose }: MobileGroupProps)
 
 export function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [expandedMobileGroup, setExpandedMobileGroup] = useState<string | null>(null);
+  const [dockCount, setDockCount] = useState(0);
+
+  useEffect(() => {
+    setDockCount(getMonitors().length);
+    const onStorage = () => setDockCount(getMonitors().length);
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  useEffect(() => {
+    setDockCount(getMonitors().length);
+  }, [location.pathname]);
 
   useEffect(() => {
     setIsOpen(false);
@@ -357,6 +371,35 @@ export function Navigation() {
                 onOpen={() => handleOpen(NAV_GROUPS[3].id)}
                 onClose={handleClose}
               />
+
+              {/* Docking Station badge */}
+              <button
+                onClick={() => navigate('/trackers/docking-station')}
+                title="Docking Station"
+                className="relative flex items-center justify-center w-9 h-9 rounded transition-all focus:outline-none focus:ring-2 focus:ring-[#00ff41] focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+                style={{
+                  color: location.pathname === '/trackers/docking-station' ? '#00ff9f' : '#666',
+                  background: location.pathname === '/trackers/docking-station' ? 'rgba(0,255,159,0.1)' : 'transparent',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = '#00ff9f';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,159,0.08)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.color = location.pathname === '/trackers/docking-station' ? '#00ff9f' : '#666';
+                  (e.currentTarget as HTMLButtonElement).style.background = location.pathname === '/trackers/docking-station' ? 'rgba(0,255,159,0.1)' : 'transparent';
+                }}
+              >
+                <Monitor size={16} />
+                {dockCount > 0 && (
+                  <span
+                    className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full font-mono text-[9px] font-bold"
+                    style={{ background: '#00ff9f', color: '#000' }}
+                  >
+                    {dockCount}
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Mobile Hamburger */}

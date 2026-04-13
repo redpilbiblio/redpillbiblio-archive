@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { SEOHead } from '@/components/SEOHead';
-import { ExternalLink, Radio, ChevronDown, ChevronRight } from 'lucide-react';
+import { ExternalLink, Radio, ChevronDown, ChevronRight, Monitor, Plus } from 'lucide-react';
+import { addMonitor, DOCKING_MAX } from '@/lib/dockingStation';
 
 interface TrackerEntry {
   title: string;
@@ -344,7 +346,12 @@ const CATEGORIES: TrackerCategory[] = [
   },
 ];
 
-function ExternalTrackerCard({ entry }: { entry: TrackerEntry }) {
+type DockToast = { msg: string; kind: 'success' | 'warn' | 'info' } | null;
+
+function ExternalTrackerCard({ entry, onDockToast }: { entry: TrackerEntry; onDockToast: (t: DockToast) => void }) {
+  const navigate = useNavigate();
+  const [added, setAdded] = useState(false);
+
   const isGreen = entry.accent === '#00ff41';
   const isCyan = entry.accent === '#00d9ff';
   const isAmber = entry.accent === '#ffbf00';
@@ -354,6 +361,21 @@ function ExternalTrackerCard({ entry }: { entry: TrackerEntry }) {
 
   const borderActive = isGreen ? 'rgba(0,255,65,0.25)' : isCyan ? 'rgba(0,217,255,0.25)' : isAmber ? 'rgba(255,191,0,0.25)' : isRed ? 'rgba(255,68,68,0.25)' : isOrange ? 'rgba(255,136,0,0.25)' : isPurple ? 'rgba(168,85,247,0.25)' : 'rgba(255,255,255,0.15)';
   const bgBadge = isGreen ? 'rgba(0,255,65,0.05)' : isCyan ? 'rgba(0,217,255,0.05)' : isAmber ? 'rgba(255,191,0,0.05)' : isRed ? 'rgba(255,68,68,0.05)' : isOrange ? 'rgba(255,136,0,0.05)' : isPurple ? 'rgba(168,85,247,0.05)' : 'rgba(255,255,255,0.05)';
+
+  const handleAddToDock = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const result = addMonitor(entry.url, entry.title);
+    if (result === 'full') {
+      onDockToast({ msg: `Docking Station is full (max ${DOCKING_MAX})`, kind: 'warn' });
+    } else if (result === 'duplicate') {
+      onDockToast({ msg: `${entry.title} is already in your Docking Station`, kind: 'info' });
+    } else {
+      setAdded(true);
+      onDockToast({ msg: `${entry.title} added to Docking Station`, kind: 'success' });
+      setTimeout(() => setAdded(false), 3000);
+    }
+  };
 
   return (
     <a
@@ -397,23 +419,69 @@ function ExternalTrackerCard({ entry }: { entry: TrackerEntry }) {
         {entry.description}
       </p>
 
-      {entry.tags && (
-        <div className="flex flex-wrap gap-1 mt-auto pt-2 border-t border-[#1a1a1a]">
-          {entry.tags.map(tag => (
-            <span
-              key={tag}
-              className="font-mono text-[9px] px-1.5 py-0.5 rounded-sm text-[#555] bg-[#111] border border-[#222]"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="mt-auto pt-2 border-t border-[#1a1a1a] flex items-center justify-between gap-2">
+        {entry.tags ? (
+          <div className="flex flex-wrap gap-1">
+            {entry.tags.map(tag => (
+              <span
+                key={tag}
+                className="font-mono text-[9px] px-1.5 py-0.5 rounded-sm text-[#555] bg-[#111] border border-[#222]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : <span />}
+
+        <button
+          onClick={handleAddToDock}
+          title="Add to Docking Station"
+          className="flex items-center gap-1 px-2 py-1 rounded-sm font-mono text-[9px] uppercase tracking-wider transition-all shrink-0 border"
+          style={added ? {
+            background: 'rgba(0,255,159,0.12)',
+            borderColor: 'rgba(0,255,159,0.35)',
+            color: '#00ff9f',
+          } : {
+            background: 'transparent',
+            borderColor: 'rgba(0,255,159,0.15)',
+            color: 'rgba(0,255,159,0.5)',
+          }}
+          onMouseEnter={e => {
+            if (!added) {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,255,159,0.08)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0,255,159,0.8)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,159,0.3)';
+            }
+          }}
+          onMouseLeave={e => {
+            if (!added) {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(0,255,159,0.5)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,255,159,0.15)';
+            }
+          }}
+        >
+          {added ? (
+            <Monitor size={9} />
+          ) : (
+            <Plus size={9} />
+          )}
+          {added ? 'Added' : 'Dock'}
+        </button>
+      </div>
     </a>
   );
 }
 
-function CategorySection({ category, defaultOpen }: { category: TrackerCategory; defaultOpen?: boolean }) {
+function CategorySection({
+  category,
+  defaultOpen,
+  onDockToast,
+}: {
+  category: TrackerCategory;
+  defaultOpen?: boolean;
+  onDockToast: (t: DockToast) => void;
+}) {
   const [isOpen, setIsOpen] = useState(defaultOpen ?? false);
 
   return (
@@ -471,7 +539,7 @@ function CategorySection({ category, defaultOpen }: { category: TrackerCategory;
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {category.entries.map(entry => (
-              <ExternalTrackerCard key={entry.url} entry={entry} />
+              <ExternalTrackerCard key={entry.url} entry={entry} onDockToast={onDockToast} />
             ))}
           </div>
         </div>
@@ -701,7 +769,14 @@ function PowerToolCard({ card }: { card: typeof POWER_TOOLS[0] }) {
 }
 
 export function TransparencyHub() {
+  const navigate = useNavigate();
   const totalTrackers = CATEGORIES.reduce((sum, c) => sum + c.entries.length, 0);
+  const [dockToast, setDockToast] = useState<DockToast>(null);
+
+  const handleDockToast = useCallback((t: DockToast) => {
+    setDockToast(t);
+    setTimeout(() => setDockToast(null), 3000);
+  }, []);
 
   return (
     <>
@@ -711,6 +786,32 @@ export function TransparencyHub() {
         url="https://redpillbiblio.wtf/trackers/transparency-hub"
       />
       <Navigation />
+
+      {/* Dock toast */}
+      {dockToast && (
+        <div
+          className="fixed bottom-6 right-6 z-[200] flex items-center gap-3 px-4 py-3 rounded-sm border font-mono text-[11px] shadow-2xl transition-all"
+          style={
+            dockToast.kind === 'success'
+              ? { background: '#071a0f', borderColor: 'rgba(0,255,159,0.4)', color: '#00ff9f' }
+              : dockToast.kind === 'warn'
+              ? { background: '#1a1200', borderColor: 'rgba(255,191,0,0.4)', color: '#ffbf00' }
+              : { background: '#0a0a0a', borderColor: 'rgba(100,100,100,0.3)', color: '#888' }
+          }
+        >
+          <Monitor size={12} className="shrink-0" />
+          <span>{dockToast.msg}</span>
+          {dockToast.kind === 'success' && (
+            <button
+              onClick={() => navigate('/trackers/docking-station')}
+              className="ml-2 px-2 py-0.5 rounded-sm border border-[#00ff9f]/30 text-[#00ff9f]/70 hover:text-[#00ff9f] hover:bg-[#00ff9f]/10 transition-colors text-[10px]"
+            >
+              View
+            </button>
+          )}
+        </div>
+      )}
+
       <main
         id="main-content"
         tabIndex={-1}
@@ -773,7 +874,7 @@ export function TransparencyHub() {
 
           <div className="space-y-3">
             {CATEGORIES.map((cat, i) => (
-              <CategorySection key={cat.id} category={cat} defaultOpen={i === 0} />
+              <CategorySection key={cat.id} category={cat} defaultOpen={i === 0} onDockToast={handleDockToast} />
             ))}
           </div>
 

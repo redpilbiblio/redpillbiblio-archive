@@ -40,6 +40,7 @@ const BushDynasty = lazy(() => import('./pages/BushDynasty').then(m => ({ defaul
 const ResearchWorkspace = lazy(() => import('./pages/ResearchWorkspace').then(m => ({ default: m.ResearchWorkspace })));
 const TransparencyHub = lazy(() => import('./pages/TransparencyHub').then(m => ({ default: m.TransparencyHub })));
 const GlobalArchives = lazy(() => import('./pages/GlobalArchives').then(m => ({ default: m.GlobalArchives })));
+const DockingStation = lazy(() => import('./pages/DockingStation').then(m => ({ default: m.DockingStation })));
 const NotFound = lazy(() => import('./components/NotFound').then(m => ({ default: m.NotFound })));
 
 function LoadingSpinner() {
@@ -80,6 +81,7 @@ function AppInner() {
           <Route path="/trackers/revolving-door" element={<RevolvingDoor />} />
           <Route path="/trackers/convictions" element={<Convictions />} />
           <Route path="/trackers/transparency-hub" element={<TransparencyHub />} />
+          <Route path="/trackers/docking-station" element={<DockingStation />} />
           <Route path="/global-archives" element={<GlobalArchives />} />
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/transparency" element={<Transparency />} />
