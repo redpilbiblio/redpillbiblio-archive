@@ -59,6 +59,7 @@ export function RevolvingDoorContent() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filterDirection, setFilterDirection] = useState<'all' | 'Gov to Private' | 'Private to Gov' | 'Revolving' | 'Other'>('all');
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [featuredIndex, setFeaturedIndex] = useState(0);
 
   const RD_DEFAULT_WIDTHS = [110, 160, 130, 200, 50, 200, 130, 200, 100];
   const { columnWidths: rdWidths, handleMouseDown: rdMouseDown, resetColumnWidth: rdReset } = useResizableColumns(RD_DEFAULT_WIDTHS);
@@ -915,6 +916,30 @@ export function RevolvingDoorContent() {
       conflictArea: 'Taylor executed the most well-documented revolving door in food regulation history: FDA → Monsanto attorney → FDA → USDA → Monsanto VP → FDA Deputy Commissioner. While at FDA, he approved Monsanto\'s bovine growth hormone and created labeling rules that benefited Monsanto\'s products. This multi-decade rotation made him the central figure in Monsanto\'s influence over U.S. food safety regulation.',
       sources: ['https://www.farmlandbirds.net/content/monsanto%E2%80%99s-friends-high-places-remarkable-revolving-door-career-michael-taylor-fda-and-monsa', 'https://en.wikipedia.org/wiki/Michael_R._Taylor', 'https://www.opensecrets.org/revolving-door/taylor-michael-r/summary?id=20919'],
     },
+    {
+      date: '2011-01-01',
+      name: 'Meredith Attwell Baker',
+      direction: 'Gov to Private',
+      fromPosition: 'FCC Commissioner',
+      fromOrg: 'Federal Communications Commission',
+      toPosition: 'Lobbyist, Vice President',
+      toOrg: 'Comcast/NBCUniversal',
+      industry: 'Telecom/Media',
+      conflictArea: 'Baker voted to approve the Comcast-NBCUniversal merger as an FCC Commissioner, then joined Comcast as a lobbyist within months. She leveraged her FCC knowledge and relationships to advance Comcast\'s interests in the same agency she had just left.',
+      sources: ['https://therevolvingdoorproject.org/', 'https://www.fcc.gov'],
+    },
+    {
+      date: '1990-01-01',
+      name: 'Linda Fisher',
+      direction: 'Revolving',
+      fromPosition: 'EPA Assistant Administrator for Pollution Prevention, Toxics and Pesticides',
+      fromOrg: 'U.S. Environmental Protection Agency',
+      toPosition: 'VP Government Affairs (multiple returns)',
+      toOrg: 'Monsanto Co. / DuPont',
+      industry: 'Chemicals/Agriculture',
+      conflictArea: 'Fisher executed one of the most notorious revolving doors in pesticide and environmental regulation history: EPA → Monsanto → back to EPA → DuPont → back to EPA multiple times. She approved herbicide regulations at EPA that benefited the companies she worked for, then returned to those companies to profit from the regulations she helped create.',
+      sources: ['https://therevolvingdoorproject.org/', 'https://www.citizen.org'],
+    },
   ];
 
   const filteredTransitions = useMemo(() => {
@@ -958,7 +983,8 @@ export function RevolvingDoorContent() {
     revolving: transitions.filter((t) => t.direction === 'Revolving').length,
   };
 
-  const billyTauzin = transitions.find(t => t.name === 'Billy Tauzin');
+  const featuredNames = ['Billy Tauzin', 'Michael Taylor', 'Alex Azar', 'Robert Rubin', 'Henry (Hank) Paulson', 'Dick Cheney', 'Lloyd Austin', 'Meredith Attwell Baker', 'Linda Fisher'];
+  const featuredTransitions = transitions.filter(t => featuredNames.includes(t.name));
 
   return (
     <div className="pt-4">
@@ -968,10 +994,29 @@ export function RevolvingDoorContent() {
         </p>
       </div>
 
-      {billyTauzin && (
+      {featuredTransitions.length > 0 && (
         <div className="mb-12">
-          <h2 className="text-lg font-mono text-red-400 mb-4">Spotlight</h2>
-          <FeaturedCard transition={billyTauzin} />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-mono text-red-400">Spotlight Cases</h2>
+            <div className="text-xs text-[#666]">{featuredIndex + 1} / {featuredTransitions.length}</div>
+          </div>
+          <FeaturedCard transition={featuredTransitions[featuredIndex]} />
+          {featuredTransitions.length > 1 && (
+            <div className="flex gap-2 mt-4 justify-center">
+              <button
+                onClick={() => setFeaturedIndex((i) => (i - 1 + featuredTransitions.length) % featuredTransitions.length)}
+                className="px-4 py-2 text-sm font-mono bg-red-500/10 border border-red-500/50 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+              >
+                ← Previous
+              </button>
+              <button
+                onClick={() => setFeaturedIndex((i) => (i + 1) % featuredTransitions.length)}
+                className="px-4 py-2 text-sm font-mono bg-red-500/10 border border-red-500/50 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
       )}
 
