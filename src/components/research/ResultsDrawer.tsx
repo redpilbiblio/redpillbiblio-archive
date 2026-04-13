@@ -1,14 +1,5 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import {
-  LayoutPanelLeft,
-  List,
-  Search,
-  X,
-  SlidersHorizontal,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-} from 'lucide-react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { LayoutPanelLeft, List, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, ExternalLink, Loader as Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
@@ -187,156 +178,194 @@ function convictionSources(c: ConvictionEntry): SourceLink[] {
   return links;
 }
 
+function buildLocalItems(): ResearchItem[] {
+  const items: ResearchItem[] = [];
+
+  const allConvictions = [
+    ...governmentConvictions,
+    ...corporateConvictions,
+    ...entertainmentConvictions,
+    ...lawEnforcementConvictions,
+    ...militaryConvictions,
+    ...medicalConvictions,
+    ...religiousConvictions,
+  ] as ConvictionEntry[];
+
+  allConvictions.forEach((c, idx) => {
+    const rawPillar = (c.category as string) ?? (c.subcategory as string) ?? null;
+    items.push({
+      id: `conviction-${idx}`,
+      itemType: 'Conviction',
+      title: c.name as string,
+      date: (c.conviction_date as string) ?? null,
+      pillarSlug: normalizePillarSlug(rawPillar),
+      pillar: normalizePillar(rawPillar),
+      sources: convictionSources(c),
+      snippet: (c.charges as string) ?? (c.status as string) ?? null,
+    });
+  });
+
+  const deaths = parseCsvDeaths(suspiciousDeathsCsv);
+  deaths.forEach((d, idx) => {
+    items.push({
+      id: `death-${idx}`,
+      itemType: 'Death',
+      title: d.name,
+      date: d.date || null,
+      pillarSlug: null,
+      pillar: null,
+      sources: buildSourceLinks(d.sources),
+      snippet: d.occupation ? `${d.occupation}${d.connection ? ` — ${d.connection}` : ''}` : d.connection || null,
+    });
+  });
+
+  (congressTrades as Array<Record<string, string>>).forEach((t, idx) => {
+    items.push({
+      id: `trade-${idx}`,
+      itemType: 'Trade',
+      title: `${t.Member} — ${t.Ticker}`,
+      date: t.Date || null,
+      pillarSlug: 'financial-systems',
+      pillar: 'Financial Systems',
+      sources: buildSourceLinks(t.Source),
+      snippet: `${t.Type} · ${t.Company} · ${t.Amount}`,
+    });
+  });
+
+  dynastiesIndex.forEach(dynasty => {
+    items.push({
+      id: `dynasty-${dynasty.id}`,
+      itemType: 'Family',
+      title: dynasty.title,
+      date: null,
+      pillarSlug: null,
+      pillar: null,
+      sources: [],
+      dynastyName: dynasty.id,
+      snippet: dynasty.tagline,
+    });
+  });
+
+  return items;
+}
+
+let _localItemsCache: ResearchItem[] | null = null;
+function getLocalItems(): ResearchItem[] {
+  if (!_localItemsCache) _localItemsCache = buildLocalItems();
+  return _localItemsCache;
+}
+
+function mapDocRows(rows: DocRow[]): ResearchItem[] {
+  return rows.map(d => {
+    const meta = d.metadata as Record<string, unknown> | null;
+    const rawPillar = (meta?.pillar as string) ?? (d.pillar_slug as string) ?? (d.document_type as string) ?? null;
+    return {
+      id: d.id as string,
+      itemType: 'Document' as const,
+      title: d.title as string,
+      date: (d.date_published as string) ?? null,
+      pillarSlug: normalizePillarSlug(rawPillar),
+      pillar: normalizePillar(rawPillar),
+      sources: docSources(d),
+      verificationTier: (d.verification_tier as ResearchItem['verificationTier']) ?? null,
+      tags: undefined,
+      snippet: (d.description as string) ?? null,
+    };
+  });
+}
+
+function mapEventRows(rows: EventRow[]): ResearchItem[] {
+  return rows.map(e => {
+    const rawPillar = (e.pillar as string) ?? null;
+    return {
+      id: e.id as string,
+      itemType: 'Event' as const,
+      title: e.title as string,
+      date: (e.event_date as string) ?? null,
+      pillarSlug: normalizePillarSlug(rawPillar),
+      pillar: normalizePillar(rawPillar),
+      sources: eventSources(e),
+      snippet: (e.description as string) ?? null,
+    };
+  });
+}
+
+function mapEnemyRows(rows: EnemyRow[]): ResearchItem[] {
+  return rows.map(en => ({
+    id: en.id as string,
+    itemType: 'Watchlist' as const,
+    title: en.name as string,
+    date: (en.date_added as string) ?? null,
+    pillarSlug: null,
+    pillar: null,
+    sources: enemySources(en),
+    severity: (en.severity as string) ?? null,
+    snippet: (en.summary as string) ?? null,
+  }));
+}
+
 function useResearchResults(filters: ResearchFilters) {
-  return useQuery({
-    queryKey: ['research-results', filters.sort],
-    queryFn: async (): Promise<ResearchItem[]> => {
-      const ascending = filters.sort === 'oldest';
+  const ascending = filters.sort === 'oldest';
 
-      const [docsRes, eventsRes, enemiesRes] = await Promise.all([
-        supabase
-          .from('documents')
-          .select('id, title, description, date_published, document_type, verification_tier, source_url, metadata')
-          .order('date_published', { ascending })
-          .limit(600),
-        supabase
-          .from('events')
-          .select('id, title, description, event_date, pillar, metadata')
-          .order('event_date', { ascending })
-          .limit(400),
-        supabase
-          .from('enemies_of_truth')
-          .select('id, name, date_added, severity, summary, sources')
-          .order('date_added', { ascending })
-          .limit(300),
-      ]);
-
-      const items: ResearchItem[] = [];
-
-      for (const d of (docsRes.data ?? []) as DocRow[]) {
-        const meta = d.metadata as Record<string, unknown> | null;
-        const rawPillar = (meta?.pillar as string) ?? (d.pillar_slug as string) ?? (d.document_type as string) ?? null;
-        const pillarSlug = normalizePillarSlug(rawPillar);
-        const pillar = normalizePillar(rawPillar);
-        items.push({
-          id: d.id as string,
-          itemType: 'Document',
-          title: d.title as string,
-          date: (d.date_published as string) ?? null,
-          pillarSlug,
-          pillar,
-          sources: docSources(d),
-          verificationTier: (d.verification_tier as ResearchItem['verificationTier']) ?? null,
-          tags: undefined,
-          snippet: (d.description as string) ?? null,
-        });
-      }
-
-      for (const e of (eventsRes.data ?? []) as EventRow[]) {
-        const rawPillar = (e.pillar as string) ?? null;
-        const pillarSlug = normalizePillarSlug(rawPillar);
-        const pillar = normalizePillar(rawPillar);
-        items.push({
-          id: e.id as string,
-          itemType: 'Event',
-          title: e.title as string,
-          date: (e.event_date as string) ?? null,
-          pillarSlug,
-          pillar,
-          sources: eventSources(e),
-          snippet: (e.description as string) ?? null,
-        });
-      }
-
-      for (const en of (enemiesRes.data ?? []) as EnemyRow[]) {
-        items.push({
-          id: en.id as string,
-          itemType: 'Watchlist',
-          title: en.name as string,
-          date: (en.date_added as string) ?? null,
-          pillarSlug: null,
-          pillar: null,
-          sources: enemySources(en),
-          severity: (en.severity as string) ?? null,
-          snippet: (en.summary as string) ?? null,
-        });
-      }
-
-      const allConvictions = [
-        ...governmentConvictions,
-        ...corporateConvictions,
-        ...entertainmentConvictions,
-        ...lawEnforcementConvictions,
-        ...militaryConvictions,
-        ...medicalConvictions,
-        ...religiousConvictions,
-      ] as ConvictionEntry[];
-
-      allConvictions.forEach((c, idx) => {
-        const rawPillar = (c.category as string) ?? (c.subcategory as string) ?? null;
-        items.push({
-          id: `conviction-${idx}`,
-          itemType: 'Conviction',
-          title: c.name as string,
-          date: (c.conviction_date as string) ?? null,
-          pillarSlug: normalizePillarSlug(rawPillar),
-          pillar: normalizePillar(rawPillar),
-          sources: convictionSources(c),
-          snippet: (c.charges as string) ?? (c.status as string) ?? null,
-        });
-      });
-
-      const deaths = parseCsvDeaths(suspiciousDeathsCsv);
-      deaths.forEach((d, idx) => {
-        items.push({
-          id: `death-${idx}`,
-          itemType: 'Death',
-          title: d.name,
-          date: d.date || null,
-          pillarSlug: null,
-          pillar: null,
-          sources: buildSourceLinks(d.sources),
-          snippet: d.occupation ? `${d.occupation}${d.connection ? ` — ${d.connection}` : ''}` : d.connection || null,
-        });
-      });
-
-      (congressTrades as Array<Record<string, string>>).forEach((t, idx) => {
-        items.push({
-          id: `trade-${idx}`,
-          itemType: 'Trade',
-          title: `${t.Member} — ${t.Ticker}`,
-          date: t.Date || null,
-          pillarSlug: 'financial-systems',
-          pillar: 'Financial Systems',
-          sources: buildSourceLinks(t.Source),
-          snippet: `${t.Type} · ${t.Company} · ${t.Amount}`,
-        });
-      });
-
-      dynastiesIndex.forEach(dynasty => {
-        items.push({
-          id: `dynasty-${dynasty.id}`,
-          itemType: 'Family',
-          title: dynasty.title,
-          date: null,
-          pillarSlug: null,
-          pillar: null,
-          sources: [],
-          dynastyName: dynasty.id,
-          snippet: dynasty.tagline,
-        });
-      });
-
-      const sorted = items.sort((a, b) => {
-        const da = a.date ?? '';
-        const db = b.date ?? '';
-        return ascending ? da.localeCompare(db) : db.localeCompare(da);
-      });
-
-      return sorted;
+  const docsQuery = useQuery({
+    queryKey: ['research-docs', filters.sort],
+    queryFn: async () => {
+      const res = await supabase
+        .from('documents')
+        .select('id, title, description, date_published, document_type, verification_tier, source_url, metadata')
+        .order('date_published', { ascending })
+        .limit(300);
+      return mapDocRows((res.data ?? []) as DocRow[]);
     },
     staleTime: 120_000,
   });
+
+  const eventsQuery = useQuery({
+    queryKey: ['research-events', filters.sort],
+    queryFn: async () => {
+      const res = await supabase
+        .from('events')
+        .select('id, title, description, event_date, pillar, metadata')
+        .order('event_date', { ascending })
+        .limit(300);
+      return mapEventRows((res.data ?? []) as EventRow[]);
+    },
+    staleTime: 120_000,
+  });
+
+  const enemiesQuery = useQuery({
+    queryKey: ['research-enemies', filters.sort],
+    queryFn: async () => {
+      const res = await supabase
+        .from('enemies_of_truth')
+        .select('id, name, date_added, severity, summary, sources')
+        .order('date_added', { ascending })
+        .limit(200);
+      return mapEnemyRows((res.data ?? []) as EnemyRow[]);
+    },
+    staleTime: 120_000,
+  });
+
+  const rawItems = useMemo(() => {
+    const merged: ResearchItem[] = [
+      ...(docsQuery.data ?? []),
+      ...(eventsQuery.data ?? []),
+      ...(enemiesQuery.data ?? []),
+      ...getLocalItems(),
+    ];
+    merged.sort((a, b) => {
+      const da = a.date ?? '';
+      const db = b.date ?? '';
+      return ascending ? da.localeCompare(db) : db.localeCompare(da);
+    });
+    return merged;
+  }, [docsQuery.data, eventsQuery.data, enemiesQuery.data, ascending]);
+
+  const isLoading = docsQuery.isLoading && eventsQuery.isLoading && enemiesQuery.isLoading;
+  const isFetching = docsQuery.isFetching || eventsQuery.isFetching || enemiesQuery.isFetching;
+  const error = docsQuery.error || eventsQuery.error || enemiesQuery.error;
+
+  return { data: rawItems, isLoading, isFetching, error };
 }
 
 const CANONICAL_SET = new Set<string>(CANONICAL_PILLARS);
@@ -552,11 +581,15 @@ function ResultSkeletons() {
   );
 }
 
-export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerProps) {
+const PAGE_SIZE = 50;
+
+export function ResultsDrawer({ open, onOpenChange: _onOpenChange, corkboard }: ResultsDrawerProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [localQuery, setLocalQuery] = useState('');
+  const [hasBoardBeenOpened, setHasBoardBeenOpened] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const {
     filters,
@@ -571,23 +604,41 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
   } = useResearchFilters();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevFilterRef = useRef(filters);
 
   useEffect(() => {
     setLocalQuery(filters.query ?? '');
   }, [filters.query]);
+
+  useEffect(() => {
+    if (prevFilterRef.current !== filters) {
+      prevFilterRef.current = filters;
+      setVisibleCount(PAGE_SIZE);
+    }
+  }, [filters]);
 
   function handleSearchChange(value: string) {
     setLocalQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setQuery(value.trim() || undefined);
-    }, 280);
+    }, 250);
   }
 
-  const { data: rawItems = [], isLoading, error } = useResearchResults(filters);
+  const { data: rawItems = [], isLoading, isFetching, error } = useResearchResults(filters);
   const { pins, pinItem, unpinItem, isItemPinned } = corkboard;
 
   const results = useMemo(() => applyFilters(rawItems, filters), [rawItems, filters]);
+
+  const visibleResults = useMemo(
+    () => results.slice(0, visibleCount),
+    [results, visibleCount],
+  );
+  const hasMore = visibleCount < results.length;
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount(prev => prev + PAGE_SIZE);
+  }, []);
 
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters]);
   const hasActiveFilters = activeFilterCount > 0;
@@ -602,6 +653,9 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
   }
 
   function handleSwitchMode(mode: ViewMode) {
+    if (mode === 'corkboard' && !hasBoardBeenOpened) {
+      setHasBoardBeenOpened(true);
+    }
     setViewMode(mode);
     setSelectedItem(null);
     setMobileFiltersOpen(false);
@@ -625,8 +679,11 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
 
   const resultCountBar = (
     <div className="px-4 py-2 border-b border-border shrink-0 flex items-center justify-between">
-      <span className="text-xs text-muted-foreground">
-        {isLoading ? 'Loading…' : `${results.length.toLocaleString()} result${results.length !== 1 ? 's' : ''}`}
+      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+        {isLoading ? 'Loading\u2026' : `${results.length.toLocaleString()} result${results.length !== 1 ? 's' : ''}`}
+        {!isLoading && isFetching && (
+          <Loader2 size={11} className="animate-spin text-muted-foreground" />
+        )}
       </span>
       {filters.query && (
         <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -660,7 +717,7 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
         </div>
       ) : (
         <div className="p-2 space-y-1.5">
-          {results.map(item => (
+          {visibleResults.map(item => (
             <ResultCard
               key={`${item.itemType}-${item.id}`}
               item={item}
@@ -669,6 +726,16 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
               onOpenDetails={setSelectedItem}
             />
           ))}
+          {hasMore && (
+            <div className="flex justify-center py-4">
+              <button
+                onClick={handleLoadMore}
+                className="px-4 py-2 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors"
+              >
+                Load more ({(results.length - visibleCount).toLocaleString()} remaining)
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
@@ -730,10 +797,20 @@ export function ResultsDrawer({ open, onOpenChange, corkboard }: ResultsDrawerPr
 
           {filterChips}
 
-          <div className="flex-1 min-h-0 overflow-hidden">
-            {viewMode === 'corkboard' ? (
-              <CorkboardPanel corkboard={corkboard} />
-            ) : (
+          <div className="flex-1 min-h-0 overflow-hidden relative">
+            {hasBoardBeenOpened && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  visibility: viewMode === 'corkboard' ? 'visible' : 'hidden',
+                  zIndex: viewMode === 'corkboard' ? 1 : 0,
+                }}
+              >
+                <CorkboardPanel corkboard={corkboard} />
+              </div>
+            )}
+
+            {viewMode === 'list' && (
               <>
                 {/* ── Desktop layout (lg+) ─────────────────────────────────── */}
                 <div className="hidden lg:flex h-full min-h-0">
