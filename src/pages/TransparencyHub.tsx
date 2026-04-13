@@ -480,14 +480,234 @@ function CategorySection({ category, defaultOpen }: { category: TrackerCategory;
   );
 }
 
+const POWER_TOOLS: Array<{ title: string; description: string; url: string; badge: string }> = [
+  {
+    title: 'The Black Vault',
+    description: 'FOIA-obtained declassified files on secretive programs and government documents spanning decades.',
+    url: 'https://www.theblackvault.com/',
+    badge: 'theblackvault.com',
+  },
+  {
+    title: 'GovernmentAttic',
+    description: 'Thousands of actual released FOIA responses archived straight from federal agencies.',
+    url: 'https://www.governmentattic.org/',
+    badge: 'governmentattic.org',
+  },
+  {
+    title: 'Violation Tracker',
+    description: 'Every corporate fine and penalty ever issued by federal and state regulators.',
+    url: 'https://violationtracker.goodjobsfirst.org/',
+    badge: 'goodjobsfirst.org',
+  },
+  {
+    title: 'TRAC',
+    description: 'Federal prosecution statistics broken down by agency — raw enforcement data.',
+    url: 'https://trac.syr.edu/',
+    badge: 'trac.syr.edu',
+  },
+  {
+    title: 'CorpWatch',
+    description: 'Multinational corporations held to human rights account through investigative reporting.',
+    url: 'https://www.corpwatch.org/',
+    badge: 'corpwatch.org',
+  },
+  {
+    title: 'Subsidy Tracker',
+    description: 'Every government subsidy paid to US corporations — searchable and transparent.',
+    url: 'https://subsidytracker.goodjobsfirst.org/',
+    badge: 'goodjobsfirst.org',
+  },
+  {
+    title: 'MapLight',
+    description: 'Donor money connected directly to legislative votes and political influence.',
+    url: 'https://maplight.org/',
+    badge: 'maplight.org',
+  },
+  {
+    title: 'POGO',
+    description: 'Waste, fraud, and abuse inside the US government exposed through independent investigations.',
+    url: 'https://pogo.org/',
+    badge: 'pogo.org',
+  },
+  {
+    title: 'American Oversight',
+    description: 'Litigation enforcing public access to government records and documents.',
+    url: 'https://www.americanoversight.org/',
+    badge: 'americanoversight.org',
+  },
+  {
+    title: 'CourtListener',
+    description: 'Free archive of every US court opinion and millions of legal filings.',
+    url: 'https://www.courtlistener.com/',
+    badge: 'courtlistener.com',
+  },
+  {
+    title: 'JudyRecords',
+    description: 'Over one billion searchable US court records from federal and state courts.',
+    url: 'https://judyrecords.com/',
+    badge: 'judyrecords.com',
+  },
+  {
+    title: 'Justia',
+    description: 'Free US federal and state case law access with primary legal documents.',
+    url: 'https://www.justia.com/',
+    badge: 'justia.com',
+  },
+  {
+    title: 'OpenSanctions',
+    description: 'Global database of sanctioned and politically exposed persons and companies.',
+    url: 'https://www.opensanctions.org/',
+    badge: 'opensanctions.org',
+  },
+  {
+    title: 'OCCRP',
+    description: 'Organized crime and corruption investigations globally with raw source data.',
+    url: 'https://www.occrp.org/',
+    badge: 'occrp.org',
+  },
+  {
+    title: 'GIJN',
+    description: 'Investigative journalists sharing tools and findings worldwide.',
+    url: 'https://gijn.org/',
+    badge: 'gijn.org',
+  },
+  {
+    title: 'Forbidden Stories',
+    description: 'Continues the work of journalists who were silenced or threatened.',
+    url: 'https://forbiddenstories.org/',
+    badge: 'forbiddenstories.org',
+  },
+  {
+    title: 'Bellingcat',
+    description: 'Open-source investigations exposing war crimes and global power abuses.',
+    url: 'https://www.bellingcat.com/',
+    badge: 'bellingcat.com',
+  },
+  {
+    title: 'InfluenceMap',
+    description: 'Real corporate climate lobbying positions scored transparently.',
+    url: 'https://influencemap.org/',
+    badge: 'influencemap.org',
+  },
+  {
+    title: 'BankTrack',
+    description: 'Banks financing harmful projects tracked and exposed.',
+    url: 'https://www.banktrack.org/',
+    badge: 'banktrack.org',
+  },
+  {
+    title: 'Global Witness',
+    description: 'Corruption connecting natural resources to political power worldwide.',
+    url: 'https://www.globalwitness.org/',
+    badge: 'globalwitness.org',
+  },
+  {
+    title: 'EarthRights',
+    description: 'Corporations complicit in human rights abuses investigated and documented.',
+    url: 'https://earthrights.org/',
+    badge: 'earthrights.org',
+  },
+  {
+    title: 'Revenue Watch (now NRGI)',
+    description: 'Government revenues from oil, gas, and mining tracked and exposed.',
+    url: 'https://resourcegovernance.org/',
+    badge: 'resourcegovernance.org',
+  },
+  {
+    title: 'Land Matrix',
+    description: 'Global large-scale land acquisitions database mapped publicly.',
+    url: 'https://landmatrix.org/',
+    badge: 'landmatrix.org',
+  },
+  {
+    title: 'Declassified UK',
+    description: 'Secret UK government activities investigated and published.',
+    url: 'https://www.declassifieduk.org/',
+    badge: 'declassifieduk.org',
+  },
+  {
+    title: 'Corporate Europe Observatory',
+    description: 'EU corporate lobbying influence tracked and exposed.',
+    url: 'https://corporateeurope.org/',
+    badge: 'corporateeurope.org',
+  },
+  {
+    title: 'Center for Public Integrity',
+    description: 'Behind-closed-doors government abuses investigated deeply.',
+    url: 'https://publicintegrity.org/',
+    badge: 'publicintegrity.org',
+  },
+  {
+    title: 'Who Owns What',
+    description: 'Find who really owns any building or property (NYC-focused but expandable).',
+    url: 'https://whoownswhat.org/',
+    badge: 'whoownswhat.org',
+  },
+  {
+    title: 'Open Syllabus',
+    description: 'What universities actually teach revealed through syllabi data.',
+    url: 'https://opensyllabus.org/',
+    badge: 'opensyllabus.org',
+  },
+  {
+    title: 'Sqoop',
+    description: 'Search millions of government documents and filings at scale.',
+    url: 'https://sqoop.com/',
+    badge: 'sqoop.com',
+  },
+];
+
+function PowerToolCard({ card }: { card: typeof POWER_TOOLS[0] }) {
+  return (
+    <a
+      href={card.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex flex-col bg-[#0d0d0d] border border-[#1e1e1e] rounded-sm p-4 transition-all duration-200 no-underline focus:outline-none focus-visible:ring-1 focus-visible:ring-[#ffbf00]/40"
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,191,0,0.25)';
+        (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 18px rgba(255,191,0,0.05)';
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLAnchorElement).style.borderColor = '#1e1e1e';
+        (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none';
+      }}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <span className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-sm border border-[#ffbf00]/20 bg-[#ffbf00]/[0.04] text-[#ffbf00]/70">
+          {card.badge}
+        </span>
+        <ExternalLink
+          size={11}
+          className="flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-50 transition-opacity text-[#ffbf00]"
+        />
+      </div>
+
+      <h3 className="font-mono text-sm font-semibold text-[#c5c5c5] group-hover:text-[#e5e5e5] leading-snug mb-2 transition-colors flex-1">
+        {card.title}
+      </h3>
+
+      <p className="font-mono text-[11px] text-[#444] group-hover:text-[#555] leading-relaxed mb-4 transition-colors flex-1">
+        {card.description}
+      </p>
+
+      <div className="mt-auto pt-3 border-t border-[#1a1a1a]">
+        <span className="font-mono text-[10px] text-[#ffbf00]/50 group-hover:text-[#ffbf00]/80 transition-colors tracking-wider">
+          View &rarr;
+        </span>
+      </div>
+    </a>
+  );
+}
+
 export function TransparencyHub() {
   const totalTrackers = CATEGORIES.reduce((sum, c) => sum + c.entries.length, 0);
 
   return (
     <>
       <SEOHead
-        title="Live Transparency Hub"
-        description="Real-time power trackers — congressional trades, federal spending, FOIA releases, court records, financial crimes, and investigative journalism. Watch the machine operate live."
+        title="Live Transparency Hub — Power Tools, FOIA, Courts &amp; Global Corruption Trackers"
+        description="Real-time power trackers — congressional trades, federal spending, FOIA releases, court records, financial crimes, investigative journalism, and 29 additional transparency power tools. Watch the machine operate live."
         url="https://redpillbiblio.wtf/trackers/transparency-hub"
       />
       <Navigation />
@@ -556,6 +776,37 @@ export function TransparencyHub() {
               <CategorySection key={cat.id} category={cat} defaultOpen={i === 0} />
             ))}
           </div>
+
+          <section className="mt-14" aria-labelledby="power-tools-heading">
+            <div className="mb-2">
+              <h2
+                id="power-tools-heading"
+                className="font-mono text-xl sm:text-2xl font-bold text-[#ffbf00] tracking-tight mb-3"
+              >
+                {'> ADDITIONAL TRANSPARENCY POWER TOOLS'}
+              </h2>
+              <p className="font-mono text-sm text-[#555] max-w-2xl mb-1">
+                More raw FOIA, court, corporate accountability, and global corruption trackers the machine hopes you never find.
+              </p>
+            </div>
+
+            <div
+              className="mb-8 mt-5 border rounded-sm px-4 py-3 flex items-start gap-3"
+              style={{ borderColor: 'rgba(255,191,0,0.12)', background: 'rgba(255,191,0,0.02)' }}
+            >
+              <span className="font-mono text-[10px] text-[#ffbf00]/40 mt-0.5 flex-shrink-0 select-none">▸</span>
+              <p className="font-mono text-[11px] text-[#4a4a4a] leading-relaxed">
+                These are additional primary-source tools from trusted investigative and data organizations. All links open in new tab.{' '}
+                <span className="text-[#555]">Connect the dots yourself.</span>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {POWER_TOOLS.map(card => (
+                <PowerToolCard key={card.url} card={card} />
+              ))}
+            </div>
+          </section>
 
           <div
             className="mt-12 border rounded-sm px-4 py-3"
