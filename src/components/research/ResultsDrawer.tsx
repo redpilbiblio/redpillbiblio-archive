@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { LayoutPanelLeft, List, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, ExternalLink, Loader as Loader2 } from 'lucide-react';
+import { LayoutPanelLeft, List, Search, X, SlidersHorizontal, ChevronDown, ChevronUp, ExternalLink, Loader as Loader2, Pin } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '../ui/scroll-area';
 import { Skeleton } from '../ui/skeleton';
@@ -590,6 +590,8 @@ export function ResultsDrawer({ open, onOpenChange: _onOpenChange, corkboard }: 
   const [localQuery, setLocalQuery] = useState('');
   const [hasBoardBeenOpened, setHasBoardBeenOpened] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isPinningAll, setIsPinningAll] = useState(false);
+  const [pinAllToast, setPinAllToast] = useState<string | null>(null);
 
   const {
     filters,
@@ -652,6 +654,23 @@ export function ResultsDrawer({ open, onOpenChange: _onOpenChange, corkboard }: 
     }
   }
 
+  async function handlePinAll() {
+    if (isPinningAll || visibleResults.length === 0) return;
+    const unpinned = visibleResults.filter(item => !isItemPinned(item.itemType, item.id));
+    if (unpinned.length === 0) {
+      setPinAllToast('All displayed items are already pinned.');
+      setTimeout(() => setPinAllToast(null), 3000);
+      return;
+    }
+    setIsPinningAll(true);
+    for (const item of unpinned) {
+      await pinItem(item);
+    }
+    setIsPinningAll(false);
+    setPinAllToast(`Pinned ${unpinned.length} item${unpinned.length !== 1 ? 's' : ''} to the corkboard.`);
+    setTimeout(() => setPinAllToast(null), 3500);
+  }
+
   function handleSwitchMode(mode: ViewMode) {
     if (mode === 'corkboard' && !hasBoardBeenOpened) {
       setHasBoardBeenOpened(true);
@@ -678,19 +697,34 @@ export function ResultsDrawer({ open, onOpenChange: _onOpenChange, corkboard }: 
   ) : null;
 
   const resultCountBar = (
-    <div className="px-4 py-2 border-b border-border shrink-0 flex items-center justify-between">
-      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+    <div className="px-4 py-2 border-b border-border shrink-0 flex items-center justify-between gap-2">
+      <span className="text-xs text-muted-foreground flex items-center gap-1.5 shrink-0">
         {isLoading ? 'Loading\u2026' : `${results.length.toLocaleString()} result${results.length !== 1 ? 's' : ''}`}
         {!isLoading && isFetching && (
           <Loader2 size={11} className="animate-spin text-muted-foreground" />
         )}
       </span>
-      {filters.query && (
-        <span className="text-xs text-muted-foreground flex items-center gap-1">
-          <Search size={11} />
-          {filters.query}
-        </span>
-      )}
+      <div className="flex items-center gap-2 min-w-0">
+        {filters.query && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+            <Search size={11} />
+            {filters.query}
+          </span>
+        )}
+        {!isLoading && visibleResults.length > 0 && (
+          <button
+            onClick={handlePinAll}
+            disabled={isPinningAll}
+            className="flex items-center gap-1 px-2 py-1 rounded border border-border text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            title={`Pin all ${visibleResults.length} displayed items to the corkboard`}
+          >
+            {isPinningAll
+              ? <Loader2 size={11} className="animate-spin" />
+              : <Pin size={11} />}
+            {isPinningAll ? 'Pinning…' : `Pin all (${visibleResults.length})`}
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -880,6 +914,13 @@ export function ResultsDrawer({ open, onOpenChange: _onOpenChange, corkboard }: 
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
           />
+        </div>
+      )}
+
+      {pinAllToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 px-4 py-2.5 rounded-md bg-foreground text-background text-xs font-medium shadow-lg pointer-events-none select-none">
+          <Pin size={12} />
+          {pinAllToast}
         </div>
       )}
     </>
