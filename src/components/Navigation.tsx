@@ -4,7 +4,7 @@ import {
   FileSearch, Crosshair, Clock, Activity, Shield,
   Menu, X, ChevronDown, Network, FileText, BookOpen,
   Trees, Scale, Info, Eye, Send, Upload, Share2, Lightbulb,
-  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen
+  Landmark, TrendingUp, Skull, PlaneTakeoff, DoorOpen, Radio
 } from 'lucide-react';
 import { GlobalSearch } from './GlobalSearch';
 
@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/trackers#suspicious-deaths', label: 'Suspicious Deaths', icon: Skull },
       { to: '/trackers#accidents', label: 'Accidents & Crashes', icon: PlaneTakeoff },
       { to: '/trackers#revolving-door', label: 'Revolving Door', icon: DoorOpen },
+      { to: '/trackers/transparency-hub', label: 'Transparency Hub', icon: Radio },
     ],
     routes: ['/convictions', '/trackers'],
   },
