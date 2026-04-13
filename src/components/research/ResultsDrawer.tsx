@@ -13,6 +13,7 @@ import { supabase } from '../../lib/supabase';
 import type { ResearchFilters, ResearchItem, SourceLink } from '../../lib/researchItems';
 import { extractDomain } from '../../lib/researchItems';
 import { normalizePillarSlug, normalizePillar, CANONICAL_PILLARS } from '../../lib/pillarUtils';
+import { parseQuery, buildHaystack, matchesQuery } from '../../lib/queryParser';
 import { dynastiesIndex } from '../../data/dynasties_index';
 import governmentConvictions from '../../data/government_convictions.json';
 import corporateConvictions from '../../data/corporate_convictions.json';
@@ -314,7 +315,7 @@ function useResearchResults(filters: ResearchFilters) {
         .from('documents')
         .select('id, title, description, date_published, document_type, verification_tier, source_url, metadata')
         .order('date_published', { ascending })
-        .limit(300);
+        .limit(1000);
       return mapDocRows((res.data ?? []) as DocRow[]);
     },
     staleTime: 120_000,
@@ -327,7 +328,7 @@ function useResearchResults(filters: ResearchFilters) {
         .from('events')
         .select('id, title, description, event_date, pillar, metadata')
         .order('event_date', { ascending })
-        .limit(300);
+        .limit(1000);
       return mapEventRows((res.data ?? []) as EventRow[]);
     },
     staleTime: 120_000,
@@ -340,7 +341,7 @@ function useResearchResults(filters: ResearchFilters) {
         .from('enemies_of_truth')
         .select('id, name, date_added, severity, summary, sources')
         .order('date_added', { ascending })
-        .limit(200);
+        .limit(500);
       return mapEnemyRows((res.data ?? []) as EnemyRow[]);
     },
     staleTime: 120_000,
@@ -374,17 +375,24 @@ function applyFilters(items: ResearchItem[], filters: ResearchFilters): Research
   let out = items;
 
   if (filters.query) {
-    const q = filters.query.toLowerCase();
+    const pq = parseQuery(filters.query);
     out = out.filter(i => {
       const sourceText = (i.sources ?? [])
         .map(s => `${s.label ?? ''} ${s.url ?? ''}`)
-        .join(' ')
-        .toLowerCase();
-      return (
-        i.title.toLowerCase().includes(q) ||
-        (i.snippet ?? '').toLowerCase().includes(q) ||
-        sourceText.includes(q)
-      );
+        .join(' ');
+      const hay = buildHaystack([
+        i.title,
+        i.snippet,
+        sourceText,
+        i.pillar,
+        i.pillarSlug,
+        i.dynastyName,
+        i.severity,
+        i.tags?.join(' '),
+        i.itemType,
+        i.verificationTier,
+      ]);
+      return matchesQuery(hay, pq);
     });
   }
   if (filters.types?.length) {

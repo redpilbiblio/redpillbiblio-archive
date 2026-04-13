@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { parseQuery, extractSearchTerms } from './queryParser';
 
 export type SearchResultType = 'evidence' | 'dossier' | 'timeline';
 
@@ -21,31 +22,30 @@ export interface GroupedSearchResults {
   total: number;
 }
 
-async function searchDocuments(query: string, limit = 8): Promise<SearchResult[]> {
-  const [ftResult, ilikeResult] = await Promise.all([
-    supabase
-      .from('documents')
-      .select('id, title, description, verification_tier, document_type, date_published, slug')
-      .textSearch('title', query, { type: 'plain', config: 'english' })
-      .limit(limit),
-    supabase
-      .from('documents')
-      .select('id, title, description, verification_tier, document_type, date_published, slug')
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-      .limit(limit),
-  ]);
-
-  const seen = new Set<string>();
-  const combined: typeof ftResult.data = [];
-
-  for (const row of [...(ftResult.data || []), ...(ilikeResult.data || [])]) {
-    if (!seen.has(row.id)) {
-      seen.add(row.id);
-      combined.push(row);
+function buildIlikeOr(terms: string[], columns: string[]): string {
+  const clauses: string[] = [];
+  for (const term of terms) {
+    for (const col of columns) {
+      clauses.push(`${col}.ilike.%${term}%`);
     }
   }
+  return clauses.join(',');
+}
 
-  return combined.slice(0, limit).map(d => ({
+async function searchDocuments(query: string, limit = 25): Promise<SearchResult[]> {
+  const pq = parseQuery(query);
+  const terms = extractSearchTerms(pq);
+  if (terms.length === 0) return [];
+
+  const orFilter = buildIlikeOr(terms, ['title', 'description']);
+
+  const { data } = await supabase
+    .from('documents')
+    .select('id, title, description, verification_tier, document_type, date_published, slug')
+    .or(orFilter)
+    .limit(limit);
+
+  return (data || []).map(d => ({
     id: d.id,
     type: 'evidence' as SearchResultType,
     title: d.title,
@@ -57,49 +57,44 @@ async function searchDocuments(query: string, limit = 8): Promise<SearchResult[]
   }));
 }
 
-async function searchEnemies(query: string, limit = 4): Promise<SearchResult[]> {
-  const { data, error } = await supabase
+async function searchEnemies(query: string, limit = 25): Promise<SearchResult[]> {
+  const pq = parseQuery(query);
+  const terms = extractSearchTerms(pq);
+  if (terms.length === 0) return [];
+
+  const orFilter = buildIlikeOr(terms, ['name', 'title', 'summary']);
+
+  const { data } = await supabase
     .from('enemies_of_truth')
     .select('id, name, title, summary, severity')
-    .or(`name.ilike.%${query}%,title.ilike.%${query}%,summary.ilike.%${query}%`)
+    .or(orFilter)
     .limit(limit);
 
-  if (error || !data) return [];
+  if (!data) return [];
 
   return data.map(d => ({
     id: d.id,
     type: 'dossier' as SearchResultType,
     title: d.name,
-    description: d.title + (d.summary ? ` — ${d.summary.substring(0, 80)}` : ''),
+    description: d.title + (d.summary ? ` — ${d.summary.substring(0, 120)}` : ''),
     severity: d.severity,
   }));
 }
 
-async function searchEvents(query: string, limit = 4): Promise<SearchResult[]> {
-  const [ftResult, ilikeResult] = await Promise.all([
-    supabase
-      .from('events')
-      .select('id, title, description, event_date, pillar')
-      .textSearch('title', query, { type: 'plain', config: 'english' })
-      .limit(limit),
-    supabase
-      .from('events')
-      .select('id, title, description, event_date, pillar')
-      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-      .limit(limit),
-  ]);
+async function searchEvents(query: string, limit = 25): Promise<SearchResult[]> {
+  const pq = parseQuery(query);
+  const terms = extractSearchTerms(pq);
+  if (terms.length === 0) return [];
 
-  const seen = new Set<string>();
-  const combined: typeof ftResult.data = [];
+  const orFilter = buildIlikeOr(terms, ['title', 'description']);
 
-  for (const row of [...(ftResult.data || []), ...(ilikeResult.data || [])]) {
-    if (!seen.has(row.id)) {
-      seen.add(row.id);
-      combined.push(row);
-    }
-  }
+  const { data } = await supabase
+    .from('events')
+    .select('id, title, description, event_date, pillar')
+    .or(orFilter)
+    .limit(limit);
 
-  return combined.slice(0, limit).map(d => ({
+  return (data || []).map(d => ({
     id: d.id,
     type: 'timeline' as SearchResultType,
     title: d.title,
@@ -115,9 +110,9 @@ export async function globalSearch(query: string): Promise<GroupedSearchResults>
   }
 
   const [evidence, dossier, timeline] = await Promise.all([
-    searchDocuments(query, 8),
-    searchEnemies(query, 4),
-    searchEvents(query, 4),
+    searchDocuments(query, 25),
+    searchEnemies(query, 15),
+    searchEvents(query, 15),
   ]);
 
   return {
@@ -141,16 +136,22 @@ export async function fullSearch(
 ): Promise<{ results: SearchResult[]; total: number }> {
   if (!query.trim()) return { results: [], total: 0 };
 
+  const pq = parseQuery(query);
+  const terms = extractSearchTerms(pq);
+  if (terms.length === 0) return { results: [], total: 0 };
+
   const offset = (page - 1) * pageSize;
   const { types = ['evidence', 'dossier', 'timeline'] } = filters;
 
   const promises: Promise<SearchResult[]>[] = [];
 
   if (types.includes('evidence')) {
+    const orFilter = buildIlikeOr(terms, ['title', 'description']);
+
     let q = supabase
       .from('documents')
       .select('id, title, description, verification_tier, document_type, date_published, slug')
-      .textSearch('title', query, { type: 'plain', config: 'english' });
+      .or(orFilter);
 
     if (filters.tiers && filters.tiers.length > 0) {
       q = q.in('verification_tier', filters.tiers);
@@ -175,18 +176,20 @@ export async function fullSearch(
   }
 
   if (types.includes('dossier')) {
+    const orFilter = buildIlikeOr(terms, ['name', 'title', 'summary']);
+
     promises.push(
       supabase
         .from('enemies_of_truth')
         .select('id, name, title, summary, severity')
-        .or(`name.ilike.%${query}%,title.ilike.%${query}%,summary.ilike.%${query}%`)
-        .range(0, pageSize - 1)
+        .or(orFilter)
+        .range(offset, offset + pageSize - 1)
         .then(({ data }) =>
           (data || []).map(d => ({
             id: d.id,
             type: 'dossier' as SearchResultType,
             title: d.name,
-            description: d.title + (d.summary ? ` — ${d.summary.substring(0, 80)}` : ''),
+            description: d.title + (d.summary ? ` — ${d.summary.substring(0, 120)}` : ''),
             severity: d.severity,
           }))
         )
@@ -194,12 +197,14 @@ export async function fullSearch(
   }
 
   if (types.includes('timeline')) {
+    const orFilter = buildIlikeOr(terms, ['title', 'description']);
+
     promises.push(
       supabase
         .from('events')
         .select('id, title, description, event_date, pillar')
-        .textSearch('title', query, { type: 'plain', config: 'english' })
-        .range(0, pageSize - 1)
+        .or(orFilter)
+        .range(offset, offset + pageSize - 1)
         .then(({ data }) =>
           (data || []).map(d => ({
             id: d.id,

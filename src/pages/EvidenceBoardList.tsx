@@ -16,6 +16,7 @@ import { MatrixRain } from '@/components/MatrixRain';
 import { getArchiveStats } from '@/lib/archiveStats';
 import { useLastVisit } from '@/hooks/useLastVisit';
 import { useDocuments } from '@/hooks/useSupabaseQuery';
+import { parseQuery, buildHaystack, matchesQuery } from '@/lib/queryParser';
 
 export function EvidenceBoardList() {
   const navigate = useNavigate();
@@ -94,14 +95,18 @@ export function EvidenceBoardList() {
     let filtered = [...documents];
 
     if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        doc =>
-          doc.title.toLowerCase().includes(term) ||
-          doc.description?.toLowerCase().includes(term) ||
-          doc.content?.toLowerCase().includes(term) ||
-          doc.document_type.toLowerCase().includes(term)
-      );
+      const pq = parseQuery(searchTerm);
+      filtered = filtered.filter(doc => {
+        const hay = buildHaystack([
+          doc.title,
+          doc.description,
+          doc.content,
+          doc.document_type,
+          doc.topic_tags?.join(' '),
+          doc.source_url,
+        ]);
+        return matchesQuery(hay, pq);
+      });
     }
 
     if (selectedTypes.size > 0) {
