@@ -23,7 +23,7 @@ const PILLAR_DESCRIPTIONS: Record<string, string> = {
 };
 
 const SEARCH_SUGGESTIONS = [
-  'Epstein', 'PFAS', 'Congress trades', 'MKUltra', 'Vaccine', 'FOIA', 'CIA', 'Insider trading', 'Surveillance', 'Blackwater',
+  'Epstein', 'PFAS', 'Congress trades', 'MKUltra', 'Vaccine', 'FOIA', 'CIA', 'Blackwater',
 ];
 
 const TRUST_SIGNALS = [
