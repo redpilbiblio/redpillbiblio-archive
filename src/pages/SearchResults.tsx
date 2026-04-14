@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Search, FileText, Crosshair, Clock, ExternalLink, X, ChevronRight, Filter } from 'lucide-react';
+import { Search, FileText, Crosshair, Clock, TriangleAlert, X, ChevronRight, Filter } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { SEOHead } from '@/components/SEOHead';
 import { fullSearch, SearchResult, SearchResultType } from '@/lib/searchService';
@@ -11,12 +11,14 @@ const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   evidence: FileText,
   dossier: Crosshair,
   timeline: Clock,
+  incident: TriangleAlert,
 };
 
 const TYPE_LABEL: Record<string, string> = {
   evidence: 'Evidence',
   dossier: 'Dossier',
   timeline: 'Timeline',
+  incident: 'Incident',
 };
 
 const TIER_COLOR: Record<string, string> = {
@@ -34,6 +36,7 @@ const TIER_LABEL: Record<string, string> = {
 function resultLink(r: SearchResult): string {
   if (r.type === 'evidence') return r.slug ? `/evidence/${r.slug}` : `/evidence/${r.id}`;
   if (r.type === 'dossier') return '/watchlist';
+  if (r.type === 'incident') return '/trackers/accidents';
   return '/timeline';
 }
 
@@ -49,7 +52,7 @@ export function SearchResults() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
 
-  const [activeTypes, setActiveTypes] = useState<SearchResultType[]>(['evidence', 'dossier', 'timeline']);
+  const [activeTypes, setActiveTypes] = useState<SearchResultType[]>(['evidence', 'dossier', 'timeline', 'incident']);
   const [activeTiers, setActiveTiers] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -148,7 +151,7 @@ export function SearchResults() {
               <div>
                 <div className="text-[9px] uppercase tracking-[1.5px] text-[#555] font-mono mb-2">Type</div>
                 <div className="flex flex-col gap-1.5">
-                  {(['evidence', 'dossier', 'timeline'] as SearchResultType[]).map(t => {
+                  {(['evidence', 'dossier', 'timeline', 'incident'] as SearchResultType[]).map(t => {
                     const Icon = TYPE_ICON[t];
                     const active = activeTypes.includes(t);
                     return (

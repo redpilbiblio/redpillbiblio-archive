@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { parseQuery, extractSearchTerms } from './queryParser';
+import { INCIDENTS_DATA } from '@/data/incidentsData';
 
-export type SearchResultType = 'evidence' | 'dossier' | 'timeline';
+export type SearchResultType = 'evidence' | 'dossier' | 'timeline' | 'incident';
 
 export interface SearchResult {
   id: string;
@@ -19,6 +20,7 @@ export interface GroupedSearchResults {
   evidence: SearchResult[];
   dossier: SearchResult[];
   timeline: SearchResult[];
+  incident: SearchResult[];
   total: number;
 }
 
@@ -104,9 +106,37 @@ async function searchEvents(query: string, limit = 25): Promise<SearchResult[]> 
   }));
 }
 
+function searchIncidents(query: string, limit = 25): SearchResult[] {
+  const pq = parseQuery(query);
+  const terms = extractSearchTerms(pq);
+  if (terms.length === 0) return [];
+
+  const lowerTerms = terms.map(t => t.toLowerCase());
+
+  const matches = INCIDENTS_DATA.filter(incident => {
+    const searchable = [
+      incident.company,
+      incident.description,
+      incident.location,
+      incident.type,
+      incident.findings,
+    ].join(' ').toLowerCase();
+    return lowerTerms.some(term => searchable.includes(term));
+  });
+
+  return matches.slice(0, limit).map((incident, idx) => ({
+    id: `incident-${incident.date}-${idx}`,
+    type: 'incident' as SearchResultType,
+    title: incident.company,
+    description: `${incident.type} — ${incident.location} — ${incident.description}`,
+    pillar: incident.type,
+    date: incident.date,
+  }));
+}
+
 export async function globalSearch(query: string): Promise<GroupedSearchResults> {
   if (!query.trim()) {
-    return { evidence: [], dossier: [], timeline: [], total: 0 };
+    return { evidence: [], dossier: [], timeline: [], incident: [], total: 0 };
   }
 
   const [evidence, dossier, timeline] = await Promise.all([
@@ -115,11 +145,14 @@ export async function globalSearch(query: string): Promise<GroupedSearchResults>
     searchEvents(query, 15),
   ]);
 
+  const incident = searchIncidents(query, 15);
+
   return {
     evidence,
     dossier,
     timeline,
-    total: evidence.length + dossier.length + timeline.length,
+    incident,
+    total: evidence.length + dossier.length + timeline.length + incident.length,
   };
 }
 
@@ -141,7 +174,7 @@ export async function fullSearch(
   if (terms.length === 0) return { results: [], total: 0 };
 
   const offset = (page - 1) * pageSize;
-  const { types = ['evidence', 'dossier', 'timeline'] } = filters;
+  const { types = ['evidence', 'dossier', 'timeline', 'incident'] } = filters;
 
   const promises: Promise<SearchResult[]>[] = [];
 
@@ -216,6 +249,10 @@ export async function fullSearch(
           }))
         )
     );
+  }
+
+  if (types.includes('incident')) {
+    promises.push(Promise.resolve(searchIncidents(query, pageSize)));
   }
 
   const allResults = (await Promise.all(promises)).flat();
