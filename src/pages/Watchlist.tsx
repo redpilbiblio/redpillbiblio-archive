@@ -424,7 +424,7 @@ function LoadingSequence() {
     <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center">
       <div className="max-w-lg w-full px-6">
         {lines.map((line, i) => (
-          <p key={i} className="font-mono text-sm text-[#00ff41] mb-2 animate-pulse">
+          <p key={i} className="font-mono text-sm text-[#00ff41] mb-2 animate-pulse break-words max-w-full overflow-hidden">
             {line}
           </p>
         ))}
