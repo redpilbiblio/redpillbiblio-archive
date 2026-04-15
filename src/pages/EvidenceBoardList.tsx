@@ -246,11 +246,11 @@ export function EvidenceBoardList() {
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={handleRetry}
-                    className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs rounded"
+                    className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     Retry
                   </button>
-                  <a href="/" className="px-4 py-2 text-green-500/60 border border-green-500/20 hover:bg-green-500/10 font-mono text-xs rounded">
+                  <a href="/" className="px-4 py-2 text-green-500/60 border border-green-500/20 hover:bg-green-500/10 font-mono text-xs rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
                     Go Home
                   </a>
                 </div>
@@ -262,11 +262,11 @@ export function EvidenceBoardList() {
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={handleRetry}
-                    className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs rounded"
+                    className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     Retry
                   </button>
-                  <a href="/" className="px-4 py-2 text-green-500/60 border border-green-500/20 hover:bg-green-500/10 font-mono text-xs rounded">
+                  <a href="/" className="px-4 py-2 text-green-500/60 border border-green-500/20 hover:bg-green-500/10 font-mono text-xs rounded min-h-[44px] min-w-[44px] flex items-center justify-center">
                     Go Home
                   </a>
                 </div>
@@ -333,7 +333,7 @@ export function EvidenceBoardList() {
                 <Button
                   onClick={handleBulkExport}
                   size="sm"
-                  className="bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs"
+                  className="bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30 font-mono text-xs min-h-[44px] min-w-[44px]"
                 >
                   <Download className="w-3 h-3 mr-2" />
                   DOWNLOAD SNAPSHOT
@@ -361,7 +361,7 @@ export function EvidenceBoardList() {
               <Button
                 variant="ghost"
                 onClick={() => navigate('/evidence')}
-                className="text-green-400 hover:text-green-300 hover:bg-green-500/10 font-mono text-xs min-h-[44px] px-4 py-3"
+                className="text-green-400 hover:text-green-300 hover:bg-green-500/10 font-mono text-xs min-h-[44px] min-w-[44px] px-4 py-3"
               >
                 Switch to Network View
               </Button>
@@ -386,7 +386,7 @@ export function EvidenceBoardList() {
                 <Button
                   variant="outline"
                   onClick={handleClearAll}
-                  className="mt-4 border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono"
+                  className="mt-4 border-green-500/50 text-green-400 hover:bg-green-500/10 font-mono min-h-[44px] min-w-[44px]"
                 >
                   Clear All Filters
                 </Button>
