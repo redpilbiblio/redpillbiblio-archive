@@ -185,7 +185,7 @@ export function Landing() {
       to: null,
     },
     { label: 'Elite Family Trees', sublabel: 'Power dynasties profiled', display: '9', small: false, to: '/families' },
-    { label: 'Insider Trades', sublabel: 'Financial disclosures', display: (1106).toLocaleString(), small: false, to: '/trackers/insider-trades' },
+    { label: 'Insider Trades', sublabel: 'Financial disclosures', display: (116).toLocaleString(), small: false, to: '/trackers/insider-trades' },
     { label: 'Crashes & Incidents', sublabel: 'Accident records', display: (389).toLocaleString(), small: false, to: '/trackers/accidents' },
     { label: 'Source Links Archived', sublabel: 'Primary references', display: (2773).toLocaleString(), small: false, to: null },
   ];
