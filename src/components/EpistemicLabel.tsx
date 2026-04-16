@@ -30,7 +30,7 @@ const labelConfig: Record<EpistemicType, { color: string; border: string; bg: st
 };
 
 export function EpistemicTag({ type }: { type: EpistemicType }) {
-  const config = labelConfig[type];
+  const config = labelConfig[type] || labelConfig.CONTESTED;
   return (
     <span
       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase tracking-wider ${config.color} ${config.bg} ${config.border} border`}
@@ -85,8 +85,26 @@ export function EpistemicLegend() {
   );
 }
 
+function normalizeClaim(raw: unknown): LabeledClaim | null {
+  if (typeof raw === 'object' && raw !== null && 'type' in raw && 'text' in raw) {
+    const obj = raw as { type: string; text: string };
+    const validType = labelConfig[obj.type as EpistemicType] ? (obj.type as EpistemicType) : 'CONTESTED';
+    return { type: validType, text: obj.text };
+  }
+  if (typeof raw === 'string') {
+    const match = raw.match(/^(DOCUMENTED|INFERRED|CONTESTED|UNRESOLVED):\s*(.+)$/i);
+    if (match) {
+      const mapped = match[1].toUpperCase() === 'UNRESOLVED' ? 'CONTESTED' : match[1].toUpperCase() as EpistemicType;
+      const validType = labelConfig[mapped] ? mapped : 'CONTESTED';
+      return { type: validType, text: match[2] };
+    }
+    return { type: 'CONTESTED', text: raw };
+  }
+  return null;
+}
+
 export function EpistemicClaimBlock({ claim }: { claim: LabeledClaim }) {
-  const config = labelConfig[claim.type];
+  const config = labelConfig[claim.type] || labelConfig.CONTESTED;
   return (
     <div className={`flex items-start gap-2 my-2 pl-3 border-l-2 ${config.border}`}>
       <EpistemicTag type={claim.type} />
@@ -100,11 +118,13 @@ export function EpistemicClaimBlock({ claim }: { claim: LabeledClaim }) {
   );
 }
 
-export function renderLabeledClaims(claims: LabeledClaim[] | null | undefined) {
+export function renderLabeledClaims(claims: unknown[] | null | undefined) {
   if (!claims || claims.length === 0) return null;
+  const normalized = claims.map(normalizeClaim).filter((c): c is LabeledClaim => c !== null);
+  if (normalized.length === 0) return null;
   return (
     <div className="mt-4 space-y-1">
-      {claims.map((claim, i) => (
+      {normalized.map((claim, i) => (
         <EpistemicClaimBlock key={i} claim={claim} />
       ))}
     </div>
