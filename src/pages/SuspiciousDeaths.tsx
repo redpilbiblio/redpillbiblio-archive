@@ -11,6 +11,8 @@ import {
   ShieldAlert, ChevronDown, ChevronUp, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import suspiciousDeathsCsv from '@/data/suspicious_deaths_new.csv?raw';
+import { missingScientistsCaseFile } from '@/data/missingScientistsCaseFile';
+import { MissingScientistsSection } from '@/components/MissingScientistsSection';
 
 interface CsvDeath {
   date: string;
@@ -519,6 +521,16 @@ export function SuspiciousDeathsContent() {
             </div>
           );
         })}
+      </div>
+
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-6">
+          <Skull className="w-7 h-7 text-[#3b82f6]" />
+          <h2 className="text-2xl font-bold text-[#e5e5e5] font-mono">
+            &gt; MISSING_SCIENTISTS.cluster
+          </h2>
+        </div>
+        <MissingScientistsSection data={missingScientistsCaseFile} />
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
